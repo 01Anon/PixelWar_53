@@ -19,9 +19,9 @@
    --cyan-dim: rgba(34, 211, 238, 0.15);
    --gold: #FBBF24;
    --gold-dim: rgba(251, 191, 36, 0.15);
-   --text-primary: #EEEEF0;
-   --text-secondary: #8B8BA3;
-   --text-tertiary: #52526B;
+   --text-primary: #F0F0F5;
+   --text-secondary: #A0A0B8;
+   --text-tertiary: #7A7A96;
    --warning: #F59E0B;
    --warning-dim: rgba(245, 158, 11, 0.15);
    --danger: #EF4444;
