@@ -2951,3 +2951,128 @@ ul {
       transition-duration: .01ms !important;
    }
 }
+
+/* ═══ RESPONSIVE DESIGN ═══ */
+@media (max-width: 1024px) {
+   .sidebar {
+      width: 80px;
+      min-width: 80px;
+   }
+   .sidebar__brand, .sidebar__link span, .sidebar__gamification, .sidebar__user-info, .sidebar__user-name, .sidebar__user-email {
+      display: none;
+   }
+   .sidebar__link {
+      justify-content: center;
+      padding: var(--sp-3);
+   }
+   .sidebar__logo {
+      justify-content: center;
+      margin-right: 0;
+   }
+   .content-wrapper {
+      padding: var(--sp-6) var(--sp-4);
+   }
+   
+   .bento-grid {
+      grid-template-columns: repeat(6, 1fr);
+   }
+   
+   .bento-card--stat { grid-column: span 3; }
+   .bento-card--gamification { grid-column: span 6; }
+   .bento-card--kingdom, .bento-card--predictions { grid-column: span 6; }
+   .bento-card--donut { grid-column: span 6; }
+   .bento-card--subs { grid-column: span 6; }
+}
+
+@media (max-width: 768px) {
+   .bento-grid {
+      grid-template-columns: 1fr;
+      gap: var(--sp-4);
+   }
+   .bento-card {
+      grid-column: span 1 !important;
+   }
+   .auth-card {
+      width: 90%;
+      padding: var(--sp-6) var(--sp-4);
+   }
+   .topbar {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--sp-4);
+   }
+   .topbar__actions {
+      width: 100%;
+      justify-content: space-between;
+   }
+   .split-calc, .insights-grid {
+      grid-template-columns: 1fr;
+   }
+   
+   /* Bottom Navigation for Mobile */
+   .sidebar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      height: 64px;
+      min-width: 100%;
+      flex-direction: row;
+      justify-content: space-around;
+      padding: 0 var(--sp-2);
+      z-index: 1000;
+      border-right: none;
+      border-top: 1px solid var(--surface-border);
+      background: rgba(18, 18, 20, 0.95);
+      border-radius: 0;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+   }
+   
+   .sidebar__nav {
+      flex-direction: row;
+      gap: 0;
+      margin-top: 0;
+      width: 100%;
+      justify-content: space-around;
+      align-items: center;
+   }
+   
+   .sidebar__link {
+      flex-direction: column;
+      gap: 4px;
+      padding: var(--sp-2);
+      border-radius: var(--r-sm);
+   }
+   
+   .sidebar__link svg {
+      width: 20px;
+      height: 20px;
+   }
+   
+   .sidebar__link span {
+      display: block !important;
+      font-size: 10px;
+   }
+   
+   .sidebar__logo, .sidebar__user, .sidebar__gamification {
+      display: none;
+   }
+   
+   .main-content {
+      padding-bottom: 90px;
+   }
+   
+   .chart-container canvas {
+      max-width: 100%;
+   }
+   
+   .pokeball-display {
+      transform: scale(0.8);
+   }
+   
+   .kingdom-map {
+      grid-template-columns: repeat(2, 1fr);
+   }
+}

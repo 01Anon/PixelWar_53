@@ -454,6 +454,36 @@ function drawCatDonuts() {
 var exportBtn = document.getElementById('exportBtn');
 if (exportBtn) exportBtn.addEventListener('click', function () { showToast('Exported!', 'Treasury report saved', 'success'); });
 
+/* ── Smart Cancellation ── */
+var cancelList = document.getElementById('cancelSuggestions');
+if (cancelList) {
+    cancelList.addEventListener('click', function (e) {
+        if (e.target.tagName === 'BUTTON') {
+            var item = e.target.closest('.cancel-item');
+            if (!item) return;
+            var nameEl = item.querySelector('strong');
+            var name = nameEl ? nameEl.textContent : 'Subscription';
+            
+            item.style.opacity = '0';
+            item.style.transform = 'translateX(20px)';
+            item.style.transition = 'all 0.3s ease';
+            
+            setTimeout(function () {
+                item.remove();
+                showToast('Cancelled', name + ' has been cancelled.', 'success');
+                var count = subscriptions.length;
+                subscriptions = subscriptions.filter(function (s) { return s.name !== name; });
+                if (subscriptions.length < count) {
+                    renderDashboard();
+                    renderManageList();
+                    if (typeof drawBarChart === 'function') drawBarChart();
+                    if (typeof drawCatDonuts === 'function') drawCatDonuts();
+                }
+            }, 300);
+        }
+    });
+}
+
 /* ── Init ── */
 document.querySelectorAll('#view-dashboard .sidebar__link').forEach(bindNav);
 var logoutBtn = document.getElementById('logoutBtn');
