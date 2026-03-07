@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SubSync — Subscription Expense Manager</title>
+    <meta name="description" content="Track recurring payments and manage subscription expenses with SubSync.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- ════════════════════════════════════════════ -->
+    <!-- SCREEN 1 — LOGIN / SIGNUP                    -->
+    <!-- ════════════════════════════════════════════ -->
+    <section id="view-auth" class="view active">
+        <div class="auth-bg">
+            <div class="auth-glow auth-glow--1"></div>
+            <div class="auth-glow auth-glow--2"></div>
+        </div>
+        <div class="auth-card glass">
+            <div class="auth-logo">
+                <svg class="auth-logo__icon" viewBox="0 0 48 48" fill="none">
+                    <rect x="4" y="4" width="40" height="40" rx="12" stroke="#00FFAB" stroke-width="3"/>
+                    <path d="M16 24h16M24 16v16" stroke="#00FFAB" stroke-width="3" stroke-linecap="round"/>
+                </svg>
+                <h1 class="auth-logo__text">Sub<span class="accent">Sync</span></h1>
+            </div>
+            <p class="auth-subtitle">Manage every subscription in one place.</p>
+
+            <!-- Tab Toggle -->
+            <div class="auth-tabs" id="authTabs">
+                <button class="auth-tab active" data-tab="login">Log In</button>
+                <button class="auth-tab" data-tab="signup">Sign Up</button>
+                <span class="auth-tab__indicator"></span>
+            </div>
+
+            <!-- Login Form -->
+            <form class="auth-form" id="loginForm">
+                <div class="input-group">
+                    <input type="email" id="loginEmail" required placeholder=" ">
+                    <label for="loginEmail">Email address</label>
+                    <span class="input-highlight"></span>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="loginPassword" required placeholder=" ">
+                    <label for="loginPassword">Password</label>
+                    <span class="input-highlight"></span>
+                </div>
+                <button type="submit" class="btn btn--primary" id="loginBtn">
+                    <span>Log In</span>
+                    <svg class="btn-arrow" viewBox="0 0 24 24" fill="none"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <div class="auth-biometric" id="biometricBtn">
+                    <svg viewBox="0 0 24 24" fill="none" width="32" height="32">
+                        <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Z" stroke="#00FFAB" stroke-width="1.5"/>
+                        <path d="M8 14s1.5 2 4 2 4-2 4-2" stroke="#00FFAB" stroke-width="1.5" stroke-linecap="round"/>
+                        <circle cx="9" cy="10" r="1" fill="#00FFAB"/>
+                        <circle cx="15" cy="10" r="1" fill="#00FFAB"/>
+                    </svg>
+                    <span>Use Biometric Login</span>
+                </div>
+            </form>
+
+            <!-- Signup Form -->
+            <form class="auth-form hidden" id="signupForm">
+                <div class="input-group">
+                    <input type="text" id="signupName" required placeholder=" ">
+                    <label for="signupName">Full name</label>
+                    <span class="input-highlight"></span>
+                </div>
+                <div class="input-group">
+                    <input type="email" id="signupEmail" required placeholder=" ">
+                    <label for="signupEmail">Email address</label>
+                    <span class="input-highlight"></span>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="signupPassword" required placeholder=" ">
+                    <label for="signupPassword">Password</label>
+                    <span class="input-highlight"></span>
+                </div>
+                <button type="submit" class="btn btn--primary" id="signupBtn">
+                    <span>Create Account</span>
+                    <svg class="btn-arrow" viewBox="0 0 24 24" fill="none"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════ -->
+    <!-- SCREEN 2 — DASHBOARD                         -->
+    <!-- ════════════════════════════════════════════ -->
+    <section id="view-dashboard" class="view">
+        <!-- Sidebar -->
+        <nav class="sidebar glass" id="sidebar">
+            <div class="sidebar__logo">
+                <svg viewBox="0 0 48 48" fill="none" width="32" height="32">
+                    <rect x="4" y="4" width="40" height="40" rx="12" stroke="#00FFAB" stroke-width="3"/>
+                    <path d="M16 24h16M24 16v16" stroke="#00FFAB" stroke-width="3" stroke-linecap="round"/>
+                </svg>
+                <span class="sidebar__brand">Sub<span class="accent">Sync</span></span>
+            </div>
+            <ul class="sidebar__nav">
+                <li><a href="#" class="sidebar__link active" data-target="view-dashboard" id="nav-dashboard">
+                    <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2"/></svg>
+                    <span>Dashboard</span>
+                </a></li>
+                <li><a href="#" class="sidebar__link" data-target="view-add" id="nav-add">
+                    <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 8v8m-4-4h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    <span>Manage Subs</span>
+                </a></li>
+                <li><a href="#" class="sidebar__link" data-target="view-reminders" id="nav-reminders">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9ZM13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <span>Reminders</span>
+                </a></li>
+                <li><a href="#" class="sidebar__link" data-target="view-summary" id="nav-summary">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="7 10 12 15 17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    <span>Summary</span>
+                </a></li>
+            </ul>
+            <div class="sidebar__user">
+                <div class="avatar">JS</div>
+                <div class="sidebar__user-info">
+                    <span class="sidebar__user-name">John Smith</span>
+                    <span class="sidebar__user-email">john@subsync.io</span>
+                </div>
+                <button class="btn-icon" id="logoutBtn" title="Log out">
+                    <svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="16 17 21 12 16 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content" id="dashboardContent">
+            <header class="topbar">
+                <div>
+                    <h2 class="topbar__title">Dashboard</h2>
+                    <p class="topbar__subtitle">Welcome back, John 👋</p>
+                </div>
+                <div class="topbar__actions">
+                    <button class="btn btn--outline btn--sm" id="addSubQuick">
+                        <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                        Add New
+                    </button>
+                </div>
+            </header>
+
+            <!-- Bento Grid -->
+            <div class="bento-grid">
+                <!-- Stat Cards -->
+                <div class="bento-card bento-card--stat glass" id="statTotal">
+                    <div class="stat-icon stat-icon--green">
+                        <svg viewBox="0 0 24 24" fill="none"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <span class="stat-label">Monthly Spend</span>
+                    <span class="stat-value" id="totalSpend">$284.97</span>
+                    <span class="stat-change stat-change--up">+12% vs last month</span>
+                </div>
+
+                <div class="bento-card bento-card--stat glass" id="statActive">
+                    <div class="stat-icon stat-icon--blue">
+                        <svg viewBox="0 0 24 24" fill="none"><path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <span class="stat-label">Active Subscriptions</span>
+                    <span class="stat-value" id="activeSubs">12</span>
+                    <span class="stat-change stat-change--neutral">2 added this month</span>
+                </div>
+
+                <div class="bento-card bento-card--stat glass" id="statUpcoming">
+                    <div class="stat-icon stat-icon--orange">
+                        <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/><path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    </div>
+                    <span class="stat-label">Upcoming This Week</span>
+                    <span class="stat-value" id="upcomingPayments">3</span>
+                    <span class="stat-change stat-change--warn">$45.97 due</span>
+                </div>
+
+                <!-- Donut Chart Card -->
+                <div class="bento-card bento-card--chart glass" id="donutCard">
+                    <h3 class="bento-card__title">Expense Breakdown</h3>
+                    <div class="chart-container">
+                        <canvas id="donutChart" width="240" height="240"></canvas>
+                        <div class="chart-center">
+                            <span class="chart-center__value">$284.97</span>
+                            <span class="chart-center__label">Total/mo</span>
+                        </div>
+                    </div>
+                    <div class="chart-legend" id="donutLegend"></div>
+                </div>
+
+                <!-- Active Subscriptions List -->
+                <div class="bento-card bento-card--list glass" id="subListCard">
+                    <h3 class="bento-card__title">Active Subscriptions</h3>
+                    <div class="sub-list" id="dashSubList"></div>
+                </div>
+            </div>
+        </main>
+    </section>
+
+    <!-- ════════════════════════════════════════════ -->
+    <!-- SCREEN 3 — ADD / MANAGE SUBSCRIPTIONS        -->
+    <!-- ════════════════════════════════════════════ -->
+    <section id="view-add" class="view">
+        <nav class="sidebar glass" data-clone="sidebar"></nav>
+        <main class="main-content">
+            <header class="topbar">
+                <div>
+                    <h2 class="topbar__title">Manage Subscriptions</h2>
+                    <p class="topbar__subtitle">Add, edit, or remove your subscriptions</p>
+                </div>
+            </header>
+
+            <div class="manage-layout">
+                <!-- Add Form -->
+                <div class="add-form-card glass">
+                    <h3 class="bento-card__title">Add New Subscription</h3>
+                    <div class="brand-picker" id="brandPicker">
+                        <button class="brand-chip" data-brand="netflix" data-color="#E50914"><span class="brand-chip__icon">N</span>Netflix</button>
+                        <button class="brand-chip" data-brand="spotify" data-color="#1DB954"><span class="brand-chip__icon">S</span>Spotify</button>
+                        <button class="brand-chip" data-brand="youtube" data-color="#FF0000"><span class="brand-chip__icon">Y</span>YouTube</button>
+                        <button class="brand-chip" data-brand="adobe" data-color="#FF0000"><span class="brand-chip__icon">A</span>Adobe</button>
+                        <button class="brand-chip" data-brand="figma" data-color="#A259FF"><span class="brand-chip__icon">F</span>Figma</button>
+                        <button class="brand-chip" data-brand="github" data-color="#8B5CF6"><span class="brand-chip__icon">G</span>GitHub</button>
+                        <button class="brand-chip" data-brand="icloud" data-color="#3B82F6"><span class="brand-chip__icon">i</span>iCloud</button>
+                        <button class="brand-chip" data-brand="custom" data-color="#00FFAB"><span class="brand-chip__icon">+</span>Custom</button>
+                    </div>
+                    <form class="add-form" id="addSubForm">
+                        <div class="input-group">
+                            <input type="text" id="subName" required placeholder=" ">
+                            <label for="subName">Subscription Name</label>
+                        </div>
+                        <div class="form-row">
+                            <div class="input-group">
+                                <input type="number" id="subCost" step="0.01" required placeholder=" ">
+                                <label for="subCost">Cost ($)</label>
+                            </div>
+                            <div class="input-group">
+                                <select id="subCycle" required>
+                                    <option value="monthly">Monthly</option>
+                                    <option value="yearly">Yearly</option>
+                                    <option value="weekly">Weekly</option>
+                                </select>
+                                <label for="subCycle" class="select-label">Billing Cycle</label>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="input-group">
+                                <select id="subCategory" required>
+                                    <option value="entertainment">🎬 Entertainment</option>
+                                    <option value="productivity">⚡ Productivity</option>
+                                    <option value="cloud">☁️ Cloud & Storage</option>
+                                    <option value="music">🎵 Music</option>
+                                    <option value="news">📰 News & Media</option>
+                                    <option value="fitness">💪 Fitness</option>
+                                    <option value="other">📦 Other</option>
+                                </select>
+                                <label for="subCategory" class="select-label">Category</label>
+                            </div>
+                            <div class="input-group">
+                                <input type="date" id="subDate" required placeholder=" ">
+                                <label for="subDate" class="select-label">Next Billing Date</label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn--primary btn--full">
+                            <svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                            Add Subscription
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Current Subscriptions -->
+                <div class="manage-list-card glass">
+                    <h3 class="bento-card__title">Your Subscriptions</h3>
+                    <div class="manage-list" id="manageSubList"></div>
+                </div>
+            </div>
+        </main>
+    </section>
+
+    <!-- ════════════════════════════════════════════ -->
+    <!-- SCREEN 4 — PAYMENT REMINDERS                 -->
+    <!-- ════════════════════════════════════════════ -->
+    <section id="view-reminders" class="view">
+        <nav class="sidebar glass" data-clone="sidebar"></nav>
+        <main class="main-content">
+            <header class="topbar">
+                <div>
+                    <h2 class="topbar__title">Payment Reminders</h2>
+                    <p class="topbar__subtitle">Upcoming payments and due dates</p>
+                </div>
+            </header>
+
+            <div class="reminders-layout">
+                <!-- Urgency Banner -->
+                <div class="urgency-banner glass" id="urgencyBanner">
+                    <div class="urgency-banner__icon">⚡</div>
+                    <div class="urgency-banner__content">
+                        <strong>3 payments due this week</strong>
+                        <span>Total: $45.97 — Don't miss your renewal dates!</span>
+                    </div>
+                </div>
+
+                <!-- Timeline -->
+                <div class="reminder-timeline" id="reminderTimeline">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </main>
+    </section>
+
+    <!-- ════════════════════════════════════════════ -->
+    <!-- SCREEN 5 — MONTHLY SUMMARY                   -->
+    <!-- ════════════════════════════════════════════ -->
+    <section id="view-summary" class="view">
+        <nav class="sidebar glass" data-clone="sidebar"></nav>
+        <main class="main-content">
+            <header class="topbar">
+                <div>
+                    <h2 class="topbar__title">Monthly Summary</h2>
+                    <p class="topbar__subtitle">March 2026 — Spending overview</p>
+                </div>
+                <div class="topbar__actions">
+                    <button class="btn btn--outline btn--sm" id="exportBtn">
+                        <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="7 10 12 15 17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                        Export
+                    </button>
+                </div>
+            </header>
+
+            <div class="summary-bento">
+                <!-- Summary Stats Row -->
+                <div class="bento-card glass summary-total">
+                    <span class="stat-label">Total This Month</span>
+                    <span class="stat-value stat-value--large">$284.97</span>
+                    <div class="summary-vs">
+                        <span class="stat-change stat-change--up">↑ 12% vs Feb</span>
+                    </div>
+                </div>
+                <div class="bento-card glass summary-saved">
+                    <span class="stat-label">Potential Savings</span>
+                    <span class="stat-value stat-value--large accent">$34.99</span>
+                    <span class="stat-hint">2 unused subscriptions detected</span>
+                </div>
+                <div class="bento-card glass summary-count">
+                    <span class="stat-label">Subscriptions Paid</span>
+                    <span class="stat-value stat-value--large">10 / 12</span>
+                    <span class="stat-hint">2 remaining this month</span>
+                </div>
+
+                <!-- Bar Chart -->
+                <div class="bento-card bento-card--bar glass">
+                    <h3 class="bento-card__title">Monthly Comparison</h3>
+                    <canvas id="barChart" width="600" height="260"></canvas>
+                </div>
+
+                <!-- Category Mini-Donuts -->
+                <div class="bento-card bento-card--cats glass">
+                    <h3 class="bento-card__title">Category Breakdown</h3>
+                    <div class="cat-grid" id="catGrid"></div>
+                </div>
+            </div>
+        </main>
+    </section>
+
+    <script src="app.js"></script>
+</body>
+</html>
