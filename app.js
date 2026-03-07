@@ -112,6 +112,32 @@ function setAvatarMood(mood) {
     mouth.className = 'auth-avatar__mouth auth-avatar__mouth--' + mood;
 }
 
+// Avatar Eye Tracking
+document.addEventListener('mousemove', function(e) {
+    var pupils = document.querySelectorAll('.auth-avatar__pupil');
+    if (!pupils.length) return;
+
+    pupils.forEach(function(pupil) {
+        var eye = pupil.parentElement;
+        var rect = eye.getBoundingClientRect();
+        var eyeCX = rect.left + rect.width / 2;
+        var eyeCY = rect.top + rect.height / 2;
+        
+        var dx = e.clientX - eyeCX;
+        var dy = e.clientY - eyeCY;
+        var angle = Math.atan2(dy, dx);
+        
+        // Max distance the pupil can move from the center
+        var maxDist = rect.width / 4; 
+        // Dampen distance dynamically
+        var dist = Math.min(maxDist, Math.hypot(dx, dy) * 0.05);
+        
+        var tx = Math.cos(angle) * dist;
+        var ty = Math.sin(angle) * dist;
+        pupil.style.transform = 'translate(' + tx + 'px, ' + ty + 'px)';
+    });
+});
+
 // Gamification Engine
 function addXP(amt, reason) {
     GS.xp += amt;
@@ -163,14 +189,23 @@ authTabs?.addEventListener('click', e => {
     if (tab.dataset.tab === 'login') {
         loginForm.classList.remove('hidden'); signupForm.classList.add('hidden');
         indicator.style.transform = 'translateX(0)';
+        setAvatarMood('neutral');
     } else {
         loginForm.classList.add('hidden'); signupForm.classList.remove('hidden');
         indicator.style.transform = 'translateX(100%)';
+        setAvatarMood('happy');
     }
+});
+
+// Avatar reacts to typing
+document.querySelectorAll('#loginForm input, #signupForm input').forEach(inp => {
+    inp.addEventListener('focus', () => { setAvatarMood('happy'); });
+    inp.addEventListener('blur', () => { setAvatarMood('neutral'); });
 });
 
 loginForm?.addEventListener('submit', async e => { 
     e.preventDefault(); 
+    setAvatarMood('happy');
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
     const btn = document.getElementById('loginBtn');
@@ -235,6 +270,7 @@ loginForm?.addEventListener('submit', async e => {
 
 signupForm?.addEventListener('submit', async e => { 
     e.preventDefault(); 
+    setAvatarMood('happy');
     const name = document.getElementById('signupName').value;
     const email = document.getElementById('signupEmail').value;
     const password = document.getElementById('signupPassword').value;
@@ -274,15 +310,24 @@ signupForm?.addEventListener('submit', async e => {
     }
 });
 
-document.getElementById('biometricBtn')?.addEventListener('click', () => { showToast('Info', 'Biometrics require HTTPS', 'warning', 3000); });
+document.getElementById('biometricBtn')?.addEventListener('click', () => { 
+    setAvatarMood('happy');
+    showToast('Info', 'Biometrics require HTTPS', 'warning', 3000); 
+});
 // Keyboard support for biometric
-document.getElementById('biometricBtn')?.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showToast('Info', 'Biometrics require HTTPS', 'warning', 3000); }});
+document.getElementById('biometricBtn')?.addEventListener('keydown', e => { 
+    if (e.key === 'Enter' || e.key === ' ') { 
+        e.preventDefault(); 
+        showToast('Info', 'Biometrics require HTTPS', 'warning', 3000); 
+    }
+});
 
 function handleLogout() { 
     currentUser = null;
     document.getElementById('loginEmail').value = '';
     document.getElementById('loginPassword').value = '';
     showView('view-auth'); 
+    setAvatarMood('neutral');
 }
 
 // ──────────────────────────────────────────────
@@ -340,10 +385,6 @@ function renderKingdom() {
             '<span class="kingdom-building__cost">$' + sub.cost.toFixed(2) + '</span>' +
             '</div>';
     }).join('');
-}
-    }).join('');
-}
-
 // AI Prediction Chart
 function renderPredictions() {
     var cv = document.getElementById('predictCanvas');
@@ -463,33 +504,6 @@ function cloneSidebars(activeId) {
     });
 }
 function bindNav(l) { l.addEventListener('click', function (e) { e.preventDefault(); showView(l.dataset.target); }); }
-
-// Auth
-var authTabs = document.getElementById('authTabs');
-var loginForm = document.getElementById('loginForm');
-var signupForm = document.getElementById('signupForm');
-var indicator = document.querySelector('.auth-tab__indicator');
-
-if (authTabs) authTabs.addEventListener('click', function (e) {
-    var tab = e.target.closest('.auth-tab');
-    if (!tab) return;
-    document.querySelectorAll('.auth-tab').forEach(function (t) { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
-    tab.classList.add('active'); tab.setAttribute('aria-selected', 'true');
-    if (tab.dataset.tab === 'login') { loginForm.classList.remove('hidden'); signupForm.classList.add('hidden'); indicator.style.transform = 'translateX(0)'; setAvatarMood('neutral'); }
-    else { loginForm.classList.add('hidden'); signupForm.classList.remove('hidden'); indicator.style.transform = 'translateX(100%)'; setAvatarMood('happy'); }
-});
-
-// Avatar reacts to typing
-document.querySelectorAll('#loginForm input, #signupForm input').forEach(function (inp) {
-    inp.addEventListener('focus', function () { setAvatarMood('happy'); });
-    inp.addEventListener('blur', function () { setAvatarMood('neutral'); });
-});
-
-if (loginForm) loginForm.addEventListener('submit', function (e) { e.preventDefault(); setAvatarMood('happy'); addXP(10, 'Entered the kingdom'); showView('view-dashboard'); });
-if (signupForm) signupForm.addEventListener('submit', function (e) { e.preventDefault(); setAvatarMood('happy'); addXP(25, 'Kingdom created!'); showView('view-dashboard'); });
-var biometric = document.getElementById('biometricBtn');
-if (biometric) { biometric.addEventListener('click', function () { setAvatarMood('happy'); addXP(10, 'Quick access'); showView('view-dashboard'); }); biometric.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showView('view-dashboard'); } }); }
-function handleLogout() { showView('view-auth'); setAvatarMood('neutral'); }
 
 // Dashboard
 function renderDashboard() {
@@ -757,9 +771,10 @@ function drawBarChart(currentMonthTotal) {
             ctx.fillStyle = '#8892A0'; ctx.font = '500 12px Inter'; ctx.fillText(m, x + barW / 2, baseY + 18);
 
         });
-        if (p < 1) requestAnimationFrame(draw);
+        if (progress < 1) requestAnimationFrame(drawFrame);
     }
-    draw();
+    drawFrame();
+}
 }
 function drawCatDonuts() {
     var c = document.getElementById('catGrid');
