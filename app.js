@@ -1,322 +1,130 @@
-/* ═══════════════════════════════════════════════════════════════
-   SubSync — Application Logic
-   Subscription Expense Management Platform
-   ═══════════════════════════════════════════════════════════════ */
+/* SubSync v2 - Application Logic */
 
-// ── Constants ──
 const BRANDS = {
-    netflix:  { name: 'Netflix',  color: '#E50914', icon: 'N', category: 'entertainment', building: '🎬 Cinema Tower' },
-    spotify:  { name: 'Spotify',  color: '#1DB954', icon: 'S', category: 'music', building: '🎵 Music Hall' },
-    youtube:  { name: 'YouTube Premium', color: '#FF0000', icon: 'Y', category: 'entertainment', building: '📺 Video Palace' },
-    adobe:    { name: 'Adobe CC', color: '#FF0000', icon: 'A', category: 'productivity', building: '🏗️ Creator Forge' },
-    figma:    { name: 'Figma',    color: '#A259FF', icon: 'F', category: 'productivity', building: '🎨 Design Studio' },
-    github:   { name: 'GitHub Pro', color: '#8B5CF6', icon: 'G', category: 'productivity', building: '⚔️ Code Armory' },
-    icloud:   { name: 'iCloud+',  color: '#3B82F6', icon: 'i', category: 'cloud', building: '☁️ Cloud Castle' },
-    custom:   { name: '',         color: '#00FFAB', icon: '+', category: 'other', building: '🏰 Custom Keep' },
+    netflix: { name: 'Netflix', color: '#E50914', icon: 'N', category: 'entertainment', building: '\uD83C\uDFAC', buildingName: 'Cinema Tower' },
+    spotify: { name: 'Spotify', color: '#1DB954', icon: 'S', category: 'music', building: '\uD83C\uDFB5', buildingName: 'Music Hall' },
+    youtube: { name: 'YouTube Premium', color: '#FF0000', icon: 'Y', category: 'entertainment', building: '\uD83D\uDCFA', buildingName: 'Video Palace' },
+    adobe: { name: 'Adobe CC', color: '#FF0000', icon: 'A', category: 'productivity', building: '\uD83C\uDFD7\uFE0F', buildingName: 'Creator Forge' },
+    figma: { name: 'Figma', color: '#A259FF', icon: 'F', category: 'productivity', building: '\uD83C\uDFA8', buildingName: 'Design Studio' },
+    github: { name: 'GitHub Pro', color: '#8B5CF6', icon: 'G', category: 'productivity', building: '\u2694\uFE0F', buildingName: 'Code Armory' },
+    icloud: { name: 'iCloud+', color: '#3B82F6', icon: 'i', category: 'cloud', building: '\u2601\uFE0F', buildingName: 'Cloud Castle' },
+    custom: { name: '', color: '#7C3AED', icon: '+', category: 'other', building: '\uD83C\uDFF0', buildingName: 'Custom Keep' },
 };
+const CATEGORY_COLORS = { entertainment: '#E50914', productivity: '#A259FF', cloud: '#3B82F6', music: '#1DB954', news: '#F59E0B', fitness: '#22D3EE', other: '#A0A0B8' };
+const CATEGORY_LABELS = { entertainment: '\uD83C\uDFAC Entertainment', productivity: '\u26A1 Productivity', cloud: '\u2601\uFE0F Cloud & Storage', music: '\uD83C\uDFB5 Music', news: '\uD83D\uDCF0 News & Media', fitness: '\uD83D\uDCAA Fitness', other: '\uD83D\uDCE6 Other' };
 
-const CATEGORY_COLORS = {
-    entertainment: '#E50914', productivity: '#A259FF', cloud: '#3B82F6',
-    music: '#1DB954', news: '#FF9F43', fitness: '#00FFAB', other: '#8892A0',
-};
-const CATEGORY_LABELS = {
-    entertainment: '🎬 Entertainment', productivity: '⚡ Productivity', cloud: '☁️ Cloud & Storage',
-    music: '🎵 Music', news: '📰 News & Media', fitness: '💪 Fitness', other: '📦 Other',
-};
-const BUILDING_MAP = {
-    netflix: '🎬', spotify: '🎵', youtube: '📺', adobe: '🏗️', figma: '🎨',
-    github: '⚔️', icloud: '☁️', custom: '🏰',
-};
-
-// ── Subscription Data ──
 let subscriptions = [
-    { id:1, name:'Netflix', brand:'netflix', cost:15.99, cycle:'monthly', category:'entertainment', nextDate:'2026-03-10', color:'#E50914', icon:'N', notify:true },
-    { id:2, name:'Spotify', brand:'spotify', cost:9.99, cycle:'monthly', category:'music', nextDate:'2026-03-12', color:'#1DB954', icon:'S', notify:true },
-    { id:3, name:'YouTube Premium', brand:'youtube', cost:13.99, cycle:'monthly', category:'entertainment', nextDate:'2026-03-08', color:'#FF0000', icon:'Y', notify:true },
-    { id:4, name:'Adobe CC', brand:'adobe', cost:54.99, cycle:'monthly', category:'productivity', nextDate:'2026-03-15', color:'#FF0000', icon:'A', notify:true },
-    { id:5, name:'Figma', brand:'figma', cost:12.00, cycle:'monthly', category:'productivity', nextDate:'2026-03-20', color:'#A259FF', icon:'F', notify:true },
-    { id:6, name:'GitHub Pro', brand:'github', cost:4.00, cycle:'monthly', category:'productivity', nextDate:'2026-03-22', color:'#8B5CF6', icon:'G', notify:false },
-    { id:7, name:'iCloud+ 200GB', brand:'icloud', cost:2.99, cycle:'monthly', category:'cloud', nextDate:'2026-03-25', color:'#3B82F6', icon:'i', notify:true },
-    { id:8, name:'ChatGPT Plus', brand:'custom', cost:20.00, cycle:'monthly', category:'productivity', nextDate:'2026-03-18', color:'#10A37F', icon:'C', notify:true },
-    { id:9, name:'Apple Music', brand:'custom', cost:10.99, cycle:'monthly', category:'music', nextDate:'2026-03-28', color:'#FC3C44', icon:'A', notify:false },
-    { id:10, name:'Notion', brand:'custom', cost:8.00, cycle:'monthly', category:'productivity', nextDate:'2026-03-14', color:'#000000', icon:'N', notify:true },
-    { id:11, name:'Disney+', brand:'custom', cost:7.99, cycle:'monthly', category:'entertainment', nextDate:'2026-03-30', color:'#113CCF', icon:'D', notify:true },
-    { id:12, name:'AWS', brand:'custom', cost:124.04, cycle:'monthly', category:'cloud', nextDate:'2026-04-01', color:'#FF9900', icon:'A', notify:true },
+    { id: 1, name: 'Netflix', brand: 'netflix', cost: 15.99, cycle: 'monthly', category: 'entertainment', nextDate: '2026-03-10', color: '#E50914', icon: 'N', notify: true, usage: 85 },
+    { id: 2, name: 'Spotify', brand: 'spotify', cost: 9.99, cycle: 'monthly', category: 'music', nextDate: '2026-03-12', color: '#1DB954', icon: 'S', notify: true, usage: 92 },
+    { id: 3, name: 'YouTube Premium', brand: 'youtube', cost: 13.99, cycle: 'monthly', category: 'entertainment', nextDate: '2026-03-08', color: '#FF0000', icon: 'Y', notify: true, usage: 78 },
+    { id: 4, name: 'Adobe CC', brand: 'adobe', cost: 54.99, cycle: 'monthly', category: 'productivity', nextDate: '2026-03-15', color: '#FF0000', icon: 'A', notify: true, usage: 65 },
+    { id: 5, name: 'Figma', brand: 'figma', cost: 12.00, cycle: 'monthly', category: 'productivity', nextDate: '2026-03-20', color: '#A259FF', icon: 'F', notify: true, usage: 88 },
+    { id: 6, name: 'GitHub Pro', brand: 'github', cost: 4.00, cycle: 'monthly', category: 'productivity', nextDate: '2026-03-22', color: '#8B5CF6', icon: 'G', notify: false, usage: 95 },
+    { id: 7, name: 'iCloud+ 200GB', brand: 'icloud', cost: 2.99, cycle: 'monthly', category: 'cloud', nextDate: '2026-03-25', color: '#3B82F6', icon: 'i', notify: true, usage: 70 },
+    { id: 8, name: 'ChatGPT Plus', brand: 'custom', cost: 20.00, cycle: 'monthly', category: 'productivity', nextDate: '2026-03-18', color: '#10A37F', icon: 'C', notify: true, usage: 90 },
+    { id: 9, name: 'Apple Music', brand: 'custom', cost: 10.99, cycle: 'monthly', category: 'music', nextDate: '2026-03-28', color: '#FC3C44', icon: 'A', notify: false, usage: 12 },
+    { id: 10, name: 'Notion', brand: 'custom', cost: 8.00, cycle: 'monthly', category: 'productivity', nextDate: '2026-03-14', color: '#787878', icon: 'N', notify: true, usage: 80 },
+    { id: 11, name: 'Disney+', brand: 'custom', cost: 7.99, cycle: 'monthly', category: 'entertainment', nextDate: '2026-03-30', color: '#113CCF', icon: 'D', notify: true, usage: 25 },
+    { id: 12, name: 'AWS', brand: 'custom', cost: 124.04, cycle: 'monthly', category: 'cloud', nextDate: '2026-04-01', color: '#FF9900', icon: 'A', notify: true, usage: 98 },
 ];
 let nextId = 13;
 
-// ── Gamification State ──
-const LEVEL_TITLES = ['Newbie','Coin Counter','Budget Rookie','Sub Tracker','Budget Warrior','Expense Knight','Savings Wizard','Finance Lord','Treasure Master','Sub Overlord'];
-const BADGES_DEF = [
-    { id:'early_bird', name:'Early Bird', icon:'🐦', desc:'Check reminders 3 times', condition: g => g.remindersChecked >= 3 },
-    { id:'budget_master', name:'Budget Master', icon:'👑', desc:'Stay under budget', condition: g => g.underBudget },
-    { id:'streak_3', name:'Hot Streak', icon:'🔥', desc:'3 day streak', condition: g => g.streak >= 3 },
-    { id:'streak_7', name:'On Fire', icon:'💫', desc:'7 day streak', condition: g => g.streak >= 7 },
-    { id:'collector', name:'Collector', icon:'📦', desc:'Track 10+ subs', condition: () => subscriptions.length >= 10 },
-    { id:'penny_pincher', name:'Penny Pincher', icon:'💰', desc:'Save $50+', condition: g => g.totalSaved >= 50 },
-    { id:'organized', name:'Organized', icon:'📋', desc:'Use all categories', condition: () => { const cats = new Set(subscriptions.map(s => s.category)); return cats.size >= 4; }},
-    { id:'explorer', name:'Explorer', icon:'🗺️', desc:'Visit all screens', condition: g => g.screensVisited >= 4 },
+// Gamification
+var LEVEL_TITLES = ['Newbie', 'Coin Counter', 'Budget Rookie', 'Sub Tracker', 'Budget Warrior', 'Expense Knight', 'Savings Wizard', 'Finance Lord', 'Treasure Master', 'Sub Overlord'];
+var BADGES = [
+    { id: 'early_bird', name: 'Early Bird', icon: '\uD83D\uDC26', desc: 'Check reminders 3x', cond: function (g) { return g.remChecked >= 3; } },
+    { id: 'budget_master', name: 'Budget King', icon: '\uD83D\uDC51', desc: 'Stay under budget', cond: function (g) { return g.underBudget; } },
+    { id: 'streak_3', name: 'Hot Streak', icon: '\uD83D\uDD25', desc: '3-day streak', cond: function (g) { return g.streak >= 3; } },
+    { id: 'streak_7', name: 'Inferno', icon: '\uD83D\uDCAB', desc: '7-day streak', cond: function (g) { return g.streak >= 7; } },
+    { id: 'collector', name: 'Collector', icon: '\uD83D\uDCE6', desc: 'Track 10+ subs', cond: function () { return subscriptions.length >= 10; } },
+    { id: 'penny', name: 'Penny Pincher', icon: '\uD83D\uDCB0', desc: 'Save $50+', cond: function (g) { return g.saved >= 50; } },
+    { id: 'organized', name: 'Organized', icon: '\uD83D\uDCCB', desc: '4+ categories', cond: function () { var cats = new Set(subscriptions.map(function (s) { return s.category; })); return cats.size >= 4; } },
+    { id: 'explorer', name: 'Explorer', icon: '\uD83D\uDDFA\uFE0F', desc: 'Visit all screens', cond: function (g) { return g.screens >= 5; } },
 ];
+var GS = { xp: 650, level: 5, streak: 7, badges: ['early_bird', 'streak_3', 'streak_7', 'collector', 'organized'], remChecked: 5, underBudget: true, saved: 34.99, screens: 5, budget: 400 };
 
-let gameState = {
-    xp: 650, level: 5, streak: 7, lastActive: '2026-03-06',
-    badges: ['early_bird','streak_3','streak_7','collector','organized'],
-    remindersChecked: 5, underBudget: true, totalSaved: 34.99, screensVisited: 4,
-    budget: 400
-};
-
-// ── Insight Data ──
-const INSIGHTS = [
-    { text:'Your entertainment spending is <strong>23% higher</strong> than last month. Consider reviewing unused streaming services.', action:'View Details →' },
-    { text:'<strong>Spotify + Apple Music</strong> detected! You could save <strong>$10.99/mo</strong> by consolidating music services.', action:'See Savings →' },
-    { text:'You\'re in the top <strong>15%</strong> of SubSync users for tracking habits! 🏆 Keep up the great work.', action:'View Stats →' },
-];
-let currentInsight = 0;
-
-// ──────────────────────────────────────────────
-// TOAST NOTIFICATION SYSTEM
-// ──────────────────────────────────────────────
-function showToast(title, message, type = 'info', duration = 3500) {
-    const container = document.getElementById('toast-container');
-    const toast = document.createElement('div');
-    toast.className = `toast toast--${type}`;
-    const icons = { success:'✅', error:'❌', info:'ℹ️', achievement:'🏆' };
-    toast.innerHTML = `
-        <span class="toast__icon">${icons[type] || '📌'}</span>
-        <div class="toast__body">
-            <span class="toast__title">${title}</span>
-            <span class="toast__message">${message}</span>
-        </div>
-        <div class="toast__progress" style="animation:toastProgress ${duration}ms linear forwards;"></div>`;
-    container.appendChild(toast);
-    // Add progress animation
-    const style = document.createElement('style');
-    style.textContent = `@keyframes toastProgress{from{width:100%;}to{width:0%;}}`;
-    if (!document.querySelector('[data-toast-style]')) { style.setAttribute('data-toast-style',''); document.head.appendChild(style); }
-    setTimeout(() => { toast.classList.add('toast--removing'); setTimeout(() => toast.remove(), 300); }, duration);
+// Toast System
+function showToast(title, msg, type, dur) {
+    type = type || 'info';
+    dur = dur || 3500;
+    var c = document.getElementById('toast-container');
+    var t = document.createElement('div');
+    t.className = 'toast toast--' + type;
+    var icons = { success: '\u2705', error: '\u274C', info: '\uD83D\uDCAC', achievement: '\uD83C\uDFC6' };
+    t.innerHTML = '<span class="toast__icon">' + (icons[type] || '\uD83D\uDCCC') + '</span><div class="toast__body"><span class="toast__title">' + title + '</span><span class="toast__message">' + msg + '</span></div><div class="toast__progress" style="animation:toastProg ' + dur + 'ms linear forwards"></div>';
+    c.appendChild(t);
+    if (!document.querySelector('[data-tp]')) {
+        var s = document.createElement('style');
+        s.setAttribute('data-tp', '');
+        s.textContent = '@keyframes toastProg{from{width:100%}to{width:0%}}';
+        document.head.appendChild(s);
+    }
+    setTimeout(function () { t.classList.add('toast--removing'); setTimeout(function () { t.remove(); }, 300); }, dur);
 }
 
-// ──────────────────────────────────────────────
-// ANIMATED COUNTER
-// ──────────────────────────────────────────────
-function animateCounter(el, target, duration = 1200, prefix = '', suffix = '') {
-    const start = 0;
-    const startTime = performance.now();
-    const isFloat = String(target).includes('.') || target % 1 !== 0;
-    function update(currentTime) {
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        const current = start + (target - start) * eased;
-        el.textContent = prefix + (isFloat ? current.toFixed(2) : Math.round(current)) + suffix;
-        if (progress < 1) requestAnimationFrame(update);
+// Animated Counter
+function animateCounter(el, target, dur, prefix, suffix) {
+    if (!el) return;
+    dur = dur || 1200; prefix = prefix || ''; suffix = suffix || '';
+    var isFloat = target % 1 !== 0;
+    var startTime = performance.now();
+    function update(now) {
+        var p = Math.min((now - startTime) / dur, 1);
+        var e = 1 - Math.pow(1 - p, 3);
+        el.textContent = prefix + (isFloat ? (target * e).toFixed(2) : Math.round(target * e)) + suffix;
+        if (p < 1) requestAnimationFrame(update);
     }
     requestAnimationFrame(update);
 }
 
-// ──────────────────────────────────────────────
-// PARTICLE SYSTEM (Auth Screen)
-// ──────────────────────────────────────────────
-let particleAnimId = null;
+// Particle System
+var pAnim = null;
 function initParticles() {
-    const canvas = document.getElementById('particleCanvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    let w, h, particles = [];
-
-    function resize() {
-        w = canvas.width = window.innerWidth;
-        h = canvas.height = window.innerHeight;
-    }
-    resize();
-    window.addEventListener('resize', resize);
-
-    class Particle {
-        constructor() { this.reset(); }
-        reset() {
-            this.x = Math.random() * w; this.y = Math.random() * h;
-            this.vx = (Math.random() - 0.5) * 0.5; this.vy = (Math.random() - 0.5) * 0.5;
-            this.r = Math.random() * 2 + 0.5; this.alpha = Math.random() * 0.4 + 0.1;
-        }
-        update() {
-            this.x += this.vx; this.y += this.vy;
-            if (this.x < 0 || this.x > w) this.vx *= -1;
-            if (this.y < 0 || this.y > h) this.vy *= -1;
-        }
-        draw() {
-            ctx.beginPath(); ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(0,255,171,${this.alpha})`; ctx.fill();
-        }
-    }
-    for (let i = 0; i < 60; i++) particles.push(new Particle());
-
-    function animate() {
+    var cv = document.getElementById('particleCanvas');
+    if (!cv) return;
+    var ctx = cv.getContext('2d');
+    var w, h, pts = [];
+    function resize() { w = cv.width = window.innerWidth; h = cv.height = window.innerHeight; }
+    resize(); window.addEventListener('resize', resize);
+    function Particle() { this.x = Math.random() * w; this.y = Math.random() * h; this.vx = (Math.random() - .5) * .4; this.vy = (Math.random() - .5) * .4; this.r = Math.random() * 2 + .5; this.a = Math.random() * .3 + .1; }
+    Particle.prototype.update = function () { this.x += this.vx; this.y += this.vy; if (this.x < 0 || this.x > w) this.vx *= -1; if (this.y < 0 || this.y > h) this.vy *= -1; };
+    Particle.prototype.draw = function () { ctx.beginPath(); ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2); ctx.fillStyle = 'rgba(124,58,237,' + this.a + ')'; ctx.fill(); };
+    for (var i = 0; i < 50; i++) pts.push(new Particle());
+    function go() {
         ctx.clearRect(0, 0, w, h);
-        particles.forEach(p => { p.update(); p.draw(); });
-        // Connect nearby particles
-        for (let i = 0; i < particles.length; i++) {
-            for (let j = i + 1; j < particles.length; j++) {
-                const dx = particles[i].x - particles[j].x;
-                const dy = particles[i].y - particles[j].y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < 120) {
-                    ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y);
-                    ctx.lineTo(particles[j].x, particles[j].y);
-                    ctx.strokeStyle = `rgba(0,255,171,${0.06 * (1 - dist / 120)})`;
-                    ctx.lineWidth = 0.5; ctx.stroke();
-                }
+        pts.forEach(function (p) { p.update(); p.draw(); });
+        for (var i = 0; i < pts.length; i++) {
+            for (var j = i + 1; j < pts.length; j++) {
+                var dx = pts[i].x - pts[j].x, dy = pts[i].y - pts[j].y, d = Math.sqrt(dx * dx + dy * dy);
+                if (d < 130) { ctx.beginPath(); ctx.moveTo(pts[i].x, pts[i].y); ctx.lineTo(pts[j].x, pts[j].y); ctx.strokeStyle = 'rgba(124,58,237,' + (0.05 * (1 - d / 130)) + ')'; ctx.lineWidth = .5; ctx.stroke(); }
             }
         }
-        particleAnimId = requestAnimationFrame(animate);
+        pAnim = requestAnimationFrame(go);
     }
-    animate();
+    go();
+}
+function stopParticles() { if (pAnim) { cancelAnimationFrame(pAnim); pAnim = null; } }
+
+// Avatar Expression
+function setAvatarMood(mood) {
+    var mouth = document.getElementById('avatarMouth');
+    if (!mouth) return;
+    mouth.className = 'auth-avatar__mouth auth-avatar__mouth--' + mood;
 }
 
-function stopParticles() {
-    if (particleAnimId) { cancelAnimationFrame(particleAnimId); particleAnimId = null; }
+// Gamification Engine
+function addXP(amt, reason) {
+    GS.xp += amt;
+    var need = (GS.level + 1) * 200;
+    if (GS.xp >= need) { GS.level++; GS.xp -= need; showToast('Level Up!', 'Level ' + GS.level + ': ' + (LEVEL_TITLES[GS.level - 1] || 'Legend'), 'achievement', 4000); }
+    else { showToast('+' + amt + ' XP', reason, 'success', 2000); }
+    checkBadges(); renderGame();
 }
-
-// ──────────────────────────────────────────────
-// GAMIFICATION ENGINE
-// ──────────────────────────────────────────────
-function addXP(amount, reason) {
-    gameState.xp += amount;
-    const xpForNext = getXPForLevel(gameState.level + 1);
-    if (gameState.xp >= xpForNext) {
-        gameState.level++;
-        gameState.xp -= xpForNext;
-        showToast('Level Up! 🎉', `You reached Level ${gameState.level}: ${LEVEL_TITLES[gameState.level - 1] || 'Legend'}`, 'achievement', 4000);
-    } else {
-        showToast(`+${amount} XP`, reason, 'success', 2000);
-    }
-    checkBadges();
-    renderGamification();
-}
-
-function getXPForLevel(level) { return level * 200; }
-
 function checkBadges() {
-    BADGES_DEF.forEach(badge => {
-        if (!gameState.badges.includes(badge.id) && badge.condition(gameState)) {
-            gameState.badges.push(badge.id);
-            showToast('Badge Unlocked! 🏆', `${badge.icon} ${badge.name}: ${badge.desc}`, 'achievement', 4500);
-        }
+    BADGES.forEach(function (b) {
+        if (!GS.badges.includes(b.id) && b.cond(GS)) { GS.badges.push(b.id); showToast('Badge Unlocked!', b.icon + ' ' + b.name, 'achievement', 4500); }
     });
 }
-
-function renderGamification() {
-    const xpForNext = getXPForLevel(gameState.level + 1);
-    const pct = Math.min((gameState.xp / xpForNext) * 100, 100);
-    // Main panel
-    const levelNum = document.getElementById('levelNum');
-    const levelTitle = document.getElementById('levelTitle');
-    const xpFill = document.getElementById('xpBarFill');
-    const xpText = document.getElementById('xpText');
-    if (levelNum) levelNum.textContent = gameState.level;
-    if (levelTitle) levelTitle.textContent = LEVEL_TITLES[gameState.level - 1] || 'Legend';
-    if (xpFill) xpFill.style.width = pct + '%';
-    if (xpText) xpText.textContent = `${gameState.xp} / ${xpForNext} XP`;
-    // Streak
-    const streakCount = document.getElementById('streakCount');
-    if (streakCount) streakCount.textContent = gameState.streak;
-    // Sidebar
-    const sLvl = document.getElementById('sidebarLevel');
-    const sXpFill = document.getElementById('sidebarXpFill');
-    const sXpText = document.getElementById('sidebarXpText');
-    const sStreak = document.getElementById('sidebarStreakNum');
-    if (sLvl) sLvl.textContent = gameState.level;
-    if (sXpFill) sXpFill.style.width = pct + '%';
-    if (sXpText) sXpText.textContent = `${gameState.xp} / ${xpForNext} XP`;
-    if (sStreak) sStreak.textContent = gameState.streak;
-    // Badges
-    const badgeGrid = document.getElementById('badgeGrid');
-    if (badgeGrid) {
-        badgeGrid.innerHTML = BADGES_DEF.map(b => {
-            const unlocked = gameState.badges.includes(b.id);
-            return `<div class="badge-item ${unlocked ? 'badge-item--unlocked' : 'badge-item--locked'}">
-                <span class="badge-item__icon">${b.icon}</span>${b.name}
-                <span class="badge-item__info tooltip" title="${b.desc}">i</span>
-            </div>`;
-        }).join('');
-    }
-}
-
-// ──────────────────────────────────────────────
-// BUDGET PROGRESS RING
-// ──────────────────────────────────────────────
-function renderBudgetRing() {
-    const total = subscriptions.reduce((s, sub) => s + sub.cost, 0);
-    const budget = gameState.budget;
-    const pct = Math.min((total / budget) * 100, 100);
-    const circumference = 2 * Math.PI * 52; // r=52
-    const offset = circumference - (pct / 100) * circumference;
-    const fill = document.getElementById('budgetRingFill');
-    const pctEl = document.getElementById('budgetPct');
-    const remaining = document.getElementById('budgetRemaining');
-    if (fill) {
-        fill.style.strokeDashoffset = offset;
-        // Color based on usage
-        if (pct > 90) fill.style.stroke = '#FF6B6B';
-        else if (pct > 70) fill.style.stroke = '#FF9F43';
-        else fill.style.stroke = '#00FFAB';
-    }
-    if (pctEl) animateCounter(pctEl, Math.round(pct), 1000, '', '%');
-    if (remaining) remaining.textContent = `$${(budget - total).toFixed(2)} remaining`;
-}
-
-// ──────────────────────────────────────────────
-// INSIGHT CAROUSEL
-// ──────────────────────────────────────────────
-function renderInsight() {
-    const textEl = document.getElementById('insightText');
-    const dots = document.querySelectorAll('.insight-dot');
-    if (textEl) textEl.innerHTML = INSIGHTS[currentInsight].text;
-    dots.forEach((d, i) => d.classList.toggle('active', i === currentInsight));
-}
-
-document.getElementById('insightDots')?.addEventListener('click', e => {
-    const dot = e.target.closest('.insight-dot');
-    if (!dot) return;
-    currentInsight = parseInt(dot.dataset.index);
-    renderInsight();
-});
-
-// Auto-rotate insights
-setInterval(() => {
-    if (document.getElementById('view-dashboard')?.classList.contains('active')) {
-        currentInsight = (currentInsight + 1) % INSIGHTS.length;
-        renderInsight();
-    }
-}, 8000);
-
-// ──────────────────────────────────────────────
-// VIEW ROUTER
-// ──────────────────────────────────────────────
-function showView(viewId) {
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    const target = document.getElementById(viewId);
-    if (!target) return;
-    target.classList.add('active');
-
-    if (viewId === 'view-auth') { initParticles(); }
-    else { stopParticles(); }
-
-    if (viewId !== 'view-auth') { cloneSidebars(viewId); }
-
-    document.querySelectorAll('.sidebar__link').forEach(link => {
-        link.classList.toggle('active', link.dataset.target === viewId);
-        if (link.dataset.target === viewId) link.setAttribute('aria-current', 'page');
-        else link.removeAttribute('aria-current');
-    });
-
-    switch (viewId) {
-        case 'view-dashboard': renderDashboard(); break;
-        case 'view-add': renderManage(); break;
-        case 'view-reminders': renderReminders(); addXP(15, 'Checked reminders'); break;
-        case 'view-summary': renderSummary(); break;
-    }
-}
-
 let currentUser = null; // Store user data
 
 function cloneSidebars(activeViewId) {
@@ -391,6 +199,10 @@ loginForm?.addEventListener('submit', async e => {
                 gameState.xp = 0;
                 gameState.level = 1;
                 gameState.badges = [];
+            } else if (typeof GS !== 'undefined') {
+                GS.xp = 0;
+                GS.level = 1;
+                GS.badges = [];
             }
             
             addXP(10, 'Logged in'); 
@@ -487,7 +299,7 @@ function renderDashboard() {
     document.querySelector('.chart-center__value').textContent = '$' + total.toFixed(2);
 
     renderBudgetRing();
-    renderGamification();
+    renderGame();
     renderInsight();
     drawDonutChart();
     renderDashSubList();
@@ -515,193 +327,337 @@ function renderDashSubList() {
     }).join('');
 }
 
-// ──────────────────────────────────────────────
-// DONUT CHART
-// ──────────────────────────────────────────────
-function drawDonutChart() {
-    const canvas = document.getElementById('donutChart');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const dpr = window.devicePixelRatio || 1;
-    const size = 240;
-    canvas.width = size * dpr; canvas.height = size * dpr;
-    canvas.style.width = size + 'px'; canvas.style.height = size + 'px';
-    ctx.scale(dpr, dpr);
-
-    const groups = {};
-    subscriptions.forEach(sub => { groups[sub.category] = (groups[sub.category] || 0) + sub.cost; });
-    const total = Object.values(groups).reduce((a, b) => a + b, 0);
-    const entries = Object.entries(groups).sort((a, b) => b[1] - a[1]);
-    const cx = size / 2, cy = size / 2, outerR = 105, innerR = 70;
-
-    // Animated draw
-    let progress = 0;
-    function drawFrame() {
-        progress = Math.min(progress + 0.03, 1);
-        ctx.clearRect(0, 0, size, size);
-        let startAngle = -Math.PI / 2;
-        entries.forEach(([cat, value]) => {
-            const sweep = (value / total) * Math.PI * 2 * progress;
-            const endAngle = startAngle + sweep;
-            ctx.beginPath(); ctx.arc(cx, cy, outerR, startAngle, endAngle);
-            ctx.arc(cx, cy, innerR, endAngle, startAngle, true); ctx.closePath();
-            ctx.fillStyle = CATEGORY_COLORS[cat] || '#8892A0'; ctx.fill();
-            startAngle = endAngle;
-        });
-        if (progress < 1) requestAnimationFrame(drawFrame);
-    }
-    drawFrame();
-
-    const legend = document.getElementById('donutLegend');
-    if (legend) {
-        legend.innerHTML = entries.map(([cat, value]) => `
-            <div class="legend-item">
-                <span class="legend-dot" style="background:${CATEGORY_COLORS[cat] || '#8892A0'}"></span>
-                ${CATEGORY_LABELS[cat] || cat} — $${value.toFixed(2)}
-            </div>`).join('');
-    }
+// Kingdom Map
+function renderKingdom() {
+    var map = document.getElementById('kingdomMap');
+    if (!map) return;
+    map.innerHTML = subscriptions.map(function (sub) {
+        var brand = BRANDS[sub.brand] || BRANDS.custom;
+        return '<div class="kingdom-building" role="listitem" tabindex="0" title="' + sub.name + ' - $' + sub.cost.toFixed(2) + '/mo - ' + (sub.usage || 50) + '% usage">' +
+            '<div class="kingdom-building__glow" style="background:' + sub.color + '"></div>' +
+            '<span class="kingdom-building__emoji">' + brand.building + '</span>' +
+            '<span class="kingdom-building__name">' + brand.buildingName + '</span>' +
+            '<span class="kingdom-building__cost">$' + sub.cost.toFixed(2) + '</span>' +
+            '</div>';
+    }).join('');
+}
+    }).join('');
 }
 
-// ──────────────────────────────────────────────
-// MANAGE SUBSCRIPTIONS
-// ──────────────────────────────────────────────
-function renderManage() { renderManageList(); }
+// AI Prediction Chart
+function renderPredictions() {
+    var cv = document.getElementById('predictCanvas');
+    if (!cv) return;
+    var ctx = cv.getContext('2d');
+    var dpr = window.devicePixelRatio || 1;
+    var w = 300, h = 140;
+    cv.width = w * dpr; cv.height = h * dpr; cv.style.width = w + 'px'; cv.style.height = h + 'px';
+    ctx.scale(dpr, dpr);
+    var actual = [198, 215, 243, 256, 254, 285];
+    var predicted = [null, null, null, null, null, 285, 299, 312, 305];
+    var all = actual.concat(predicted.slice(actual.length));
+    var max = Math.max.apply(null, all.filter(function (v) { return v !== null; })) * 1.1;
+    var xStep = w / (all.length - 1);
+    ctx.clearRect(0, 0, w, h);
+    // Actual line
+    ctx.beginPath(); ctx.strokeStyle = '#A78BFA'; ctx.lineWidth = 2.5;
+    actual.forEach(function (v, i) { var x = i * xStep, y = h - 10 - (v / max) * (h - 20); i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); });
+    ctx.stroke();
+    // Predicted line dashed
+    ctx.beginPath(); ctx.strokeStyle = '#F472B6'; ctx.lineWidth = 2; ctx.setLineDash([6, 4]);
+    predicted.forEach(function (v, i) { if (v === null) return; var x = i * xStep, y = h - 10 - (v / max) * (h - 20); if (i === actual.length - 1 || (i > 0 && predicted[i - 1] === null)) ctx.moveTo(x, y); else ctx.lineTo(x, y); });
+    ctx.stroke(); ctx.setLineDash([]);
+    // Dots
+    actual.forEach(function (v, i) { ctx.beginPath(); ctx.arc(i * xStep, h - 10 - (v / max) * (h - 20), 3, 0, Math.PI * 2); ctx.fillStyle = '#A78BFA'; ctx.fill(); });
+    predicted.forEach(function (v, i) { if (v === null || i < actual.length) return; ctx.beginPath(); ctx.arc(i * xStep, h - 10 - (v / max) * (h - 20), 3, 0, Math.PI * 2); ctx.fillStyle = '#F472B6'; ctx.fill(); });
+    // Labels
+    ctx.fillStyle = '#7A7A96'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
+    ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].forEach(function (m, i) { ctx.fillText(m, i * xStep, h - 1); });
+}
 
+// Usage Heatmap
+function renderHeatmap() {
+    var hm = document.getElementById('usageHeatmap');
+    if (!hm) return;
+    var cells = [];
+    for (var i = 0; i < 28; i++) {
+        var activity = Math.random() * 100;
+        var color;
+        if (activity > 80) color = 'rgba(124,58,237,0.8)';
+        else if (activity > 60) color = 'rgba(124,58,237,0.5)';
+        else if (activity > 30) color = 'rgba(124,58,237,0.25)';
+        else color = 'rgba(124,58,237,0.08)';
+        cells.push('<div class="heatmap-cell" style="background:' + color + '" title="Day ' + (i + 1) + ': ' + Math.round(activity) + '% active"></div>');
+    }
+    hm.innerHTML = cells.join('');
+}
+
+// Forecast Chart
+function renderForecast() {
+    var cv = document.getElementById('forecastChart');
+    if (!cv) return;
+    var ctx = cv.getContext('2d');
+    var dpr = window.devicePixelRatio || 1;
+    var w = cv.parentElement.clientWidth - 48, h = 200;
+    cv.width = w * dpr; cv.height = h * dpr; cv.style.width = w + 'px'; cv.style.height = h + 'px';
+    ctx.scale(dpr, dpr);
+    var actual = [198, 215, 243, 256, 254, 285];
+    var forecast = [285, 298, 312, 305, 320, 335];
+    var all = actual.concat(forecast.slice(1));
+    var max = Math.max.apply(null, all) * 1.1;
+    var months = ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'];
+    var total = months.length;
+    var xStep = (w - 60) / (total - 1);
+    ctx.clearRect(0, 0, w, h);
+    for (var i = 0; i <= 4; i++) { var y = h - 30 - (h - 50) * i / 4; ctx.strokeStyle = 'rgba(124,58,237,.06)'; ctx.beginPath(); ctx.moveTo(40, y); ctx.lineTo(w - 10, y); ctx.stroke(); ctx.fillStyle = '#7A7A96'; ctx.font = '10px Inter'; ctx.textAlign = 'right'; ctx.fillText('$' + Math.round(max * i / 4), 35, y + 3); }
+    // Actual area
+    ctx.beginPath(); ctx.moveTo(40, h - 30);
+    actual.forEach(function (v, i) { ctx.lineTo(40 + i * xStep, h - 30 - (v / max) * (h - 50)); });
+    ctx.lineTo(40 + (actual.length - 1) * xStep, h - 30); ctx.closePath();
+    var aGrad = ctx.createLinearGradient(0, 0, 0, h); aGrad.addColorStop(0, 'rgba(124,58,237,.2)'); aGrad.addColorStop(1, 'rgba(124,58,237,0)');
+    ctx.fillStyle = aGrad; ctx.fill();
+    // Actual line
+    ctx.beginPath(); ctx.strokeStyle = '#A78BFA'; ctx.lineWidth = 2.5;
+    actual.forEach(function (v, i) { var x = 40 + i * xStep, y = h - 30 - (v / max) * (h - 50); i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); });
+    ctx.stroke();
+    // Forecast area
+    ctx.beginPath(); ctx.moveTo(40 + (actual.length - 1) * xStep, h - 30);
+    forecast.forEach(function (v, i) { ctx.lineTo(40 + (actual.length - 1 + i) * xStep, h - 30 - (v / max) * (h - 50)); });
+    ctx.lineTo(40 + (actual.length - 1 + forecast.length - 1) * xStep, h - 30); ctx.closePath();
+    var fGrad = ctx.createLinearGradient(0, 0, 0, h); fGrad.addColorStop(0, 'rgba(244,114,182,.15)'); fGrad.addColorStop(1, 'rgba(244,114,182,0)');
+    ctx.fillStyle = fGrad; ctx.fill();
+    // Forecast line dashed
+    ctx.beginPath(); ctx.strokeStyle = '#F472B6'; ctx.lineWidth = 2; ctx.setLineDash([6, 4]);
+    forecast.forEach(function (v, i) { var x = 40 + (actual.length - 1 + i) * xStep, y = h - 30 - (v / max) * (h - 50); i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); });
+    ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = '#7A7A96'; ctx.font = '11px Inter'; ctx.textAlign = 'center';
+    months.forEach(function (m, i) { if (i < total) ctx.fillText(m, 40 + i * xStep, h - 8); });
+}
+
+// View Router
+function showView(id) {
+    document.querySelectorAll('.view').forEach(function (v) { v.classList.remove('active'); });
+    var t = document.getElementById(id);
+    if (!t) return;
+    t.classList.add('active');
+    if (id === 'view-auth') initParticles(); else stopParticles();
+    if (id !== 'view-auth') cloneSidebars(id);
+    document.querySelectorAll('.sidebar__link').forEach(function (l) { l.classList.toggle('active', l.dataset.target === id); });
+    switch (id) {
+        case 'view-dashboard': renderDashboard(); break;
+        case 'view-add': renderManage(); break;
+        case 'view-reminders': renderReminders(); addXP(15, 'Checked battle alerts'); break;
+        case 'view-insights': renderInsightsScreen(); break;
+        case 'view-summary': renderSummary(); break;
+    }
+}
+function cloneSidebars(activeId) {
+    var orig = document.querySelector('#view-dashboard .sidebar');
+    document.querySelectorAll('.sidebar[data-clone]').forEach(function (ph) {
+        var cl = orig.cloneNode(true); cl.removeAttribute('id'); cl.setAttribute('data-clone', 'sidebar');
+        cl.querySelectorAll('.sidebar__link').forEach(function (l) { l.classList.toggle('active', l.dataset.target === activeId); });
+        ph.replaceWith(cl);
+        cl.querySelectorAll('.sidebar__link').forEach(bindNav);
+        var lb = cl.querySelector('#logoutBtn') || cl.querySelector('.sidebar__user .btn-icon');
+        if (lb) lb.addEventListener('click', handleLogout);
+    });
+}
+function bindNav(l) { l.addEventListener('click', function (e) { e.preventDefault(); showView(l.dataset.target); }); }
+
+// Auth
+var authTabs = document.getElementById('authTabs');
+var loginForm = document.getElementById('loginForm');
+var signupForm = document.getElementById('signupForm');
+var indicator = document.querySelector('.auth-tab__indicator');
+
+if (authTabs) authTabs.addEventListener('click', function (e) {
+    var tab = e.target.closest('.auth-tab');
+    if (!tab) return;
+    document.querySelectorAll('.auth-tab').forEach(function (t) { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
+    tab.classList.add('active'); tab.setAttribute('aria-selected', 'true');
+    if (tab.dataset.tab === 'login') { loginForm.classList.remove('hidden'); signupForm.classList.add('hidden'); indicator.style.transform = 'translateX(0)'; setAvatarMood('neutral'); }
+    else { loginForm.classList.add('hidden'); signupForm.classList.remove('hidden'); indicator.style.transform = 'translateX(100%)'; setAvatarMood('happy'); }
+});
+
+// Avatar reacts to typing
+document.querySelectorAll('#loginForm input, #signupForm input').forEach(function (inp) {
+    inp.addEventListener('focus', function () { setAvatarMood('happy'); });
+    inp.addEventListener('blur', function () { setAvatarMood('neutral'); });
+});
+
+if (loginForm) loginForm.addEventListener('submit', function (e) { e.preventDefault(); setAvatarMood('happy'); addXP(10, 'Entered the kingdom'); showView('view-dashboard'); });
+if (signupForm) signupForm.addEventListener('submit', function (e) { e.preventDefault(); setAvatarMood('happy'); addXP(25, 'Kingdom created!'); showView('view-dashboard'); });
+var biometric = document.getElementById('biometricBtn');
+if (biometric) { biometric.addEventListener('click', function () { setAvatarMood('happy'); addXP(10, 'Quick access'); showView('view-dashboard'); }); biometric.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showView('view-dashboard'); } }); }
+function handleLogout() { showView('view-auth'); setAvatarMood('neutral'); }
+
+// Dashboard
+function renderDashboard() {
+    var total = subscriptions.reduce(function (s, sub) { return s + sub.cost; }, 0);
+    animateCounter(document.getElementById('totalSpend'), total, 1200, '$');
+    animateCounter(document.getElementById('activeSubs'), subscriptions.length, 800);
+    var centerVal = document.querySelector('.chart-center__value');
+    if (centerVal) centerVal.textContent = '$' + total.toFixed(2);
+    renderHealthScore();
+    renderGame();
+    renderKingdom();
+    renderPredictions();
+    drawDonutChart();
+}
+
+// Donut Chart
+function drawDonutChart() {
+    var cv = document.getElementById('donutChart');
+    if (!cv) return;
+    var ctx = cv.getContext('2d'), dpr = window.devicePixelRatio || 1, size = 240;
+    cv.width = size * dpr; cv.height = size * dpr; cv.style.width = size + 'px'; cv.style.height = size + 'px';
+    ctx.scale(dpr, dpr);
+    var groups = {};
+    subscriptions.forEach(function (s) { groups[s.category] = (groups[s.category] || 0) + s.cost; });
+    var total = Object.values(groups).reduce(function (a, b) { return a + b; }, 0);
+    var entries = Object.entries(groups).sort(function (a, b) { return b[1] - a[1]; });
+    var cx = size / 2, cy = size / 2, oR = 105, iR = 70;
+    var prog = 0;
+    function draw() {
+        prog = Math.min(prog + 0.03, 1);
+        ctx.clearRect(0, 0, size, size);
+        var sa = -Math.PI / 2;
+        entries.forEach(function (entry) {
+            var cat = entry[0], val = entry[1];
+            var sw = (val / total) * Math.PI * 2 * prog;
+            var ea = sa + sw;
+            ctx.beginPath(); ctx.arc(cx, cy, oR, sa, ea); ctx.arc(cx, cy, iR, ea, sa, true); ctx.closePath();
+            ctx.fillStyle = CATEGORY_COLORS[cat] || '#A0A0B8'; ctx.fill();
+            sa = ea;
+        });
+        if (prog < 1) requestAnimationFrame(draw);
+    }
+    draw();
+    var leg = document.getElementById('donutLegend');
+    if (leg) leg.innerHTML = entries.map(function (e) { return '<div class="legend-item"><span class="legend-dot" style="background:' + (CATEGORY_COLORS[e[0]] || '#A0A0B8') + '"></span>' + (CATEGORY_LABELS[e[0]] || e[0]) + ' - $' + e[1].toFixed(2) + '</div>'; }).join('');
+}
+
+// Manage Subscriptions
+function renderManage() { renderManageList(); }
 function renderManageList() {
-    const container = document.getElementById('manageSubList');
-    if (!container) return;
-    container.innerHTML = subscriptions.map(sub => `
-        <div class="manage-item" role="listitem">
-            <div class="sub-icon" style="background:${sub.color}20;color:${sub.color}">${sub.icon}</div>
-            <div class="sub-info">
-                <span class="sub-name">${sub.name}</span>
-                <span class="sub-category">$${sub.cost.toFixed(2)} / ${sub.cycle}</span>
-            </div>
-            <div class="manage-item__actions">
-                <button class="btn btn--danger btn--sm" onclick="deleteSub(${sub.id})" aria-label="Remove ${sub.name}">Remove</button>
-            </div>
-        </div>`).join('');
+    var c = document.getElementById('manageSubList');
+    if (!c) return;
+    c.innerHTML = subscriptions.map(function (s) {
+        return '<div class="manage-item" role="listitem"><div class="sub-icon" style="background:' + s.color + '20;color:' + s.color + '">' + s.icon + '</div><div class="sub-info"><span class="sub-name">' + s.name + '</span><span class="sub-category">$' + s.cost.toFixed(2) + ' / ' + s.cycle + '</span></div><div class="manage-item__actions"><button class="btn btn--danger btn--sm" onclick="deleteSub(' + s.id + ')">Release</button></div></div>';
+    }).join('');
 }
 
 // Brand Picker
-document.getElementById('brandPicker')?.addEventListener('click', e => {
-    const chip = e.target.closest('.brand-chip');
-    if (!chip) return;
-    document.querySelectorAll('.brand-chip').forEach(c => { c.classList.remove('active'); c.setAttribute('aria-selected', 'false'); });
-    chip.classList.add('active'); chip.setAttribute('aria-selected', 'true');
-    const brand = BRANDS[chip.dataset.brand];
-    if (brand?.name) document.getElementById('subName').value = brand.name;
-    chip.querySelector('.brand-chip__icon').style.background = chip.dataset.color;
+var brandPicker = document.getElementById('brandPicker');
+if (brandPicker) brandPicker.addEventListener('click', function (e) {
+    var ch = e.target.closest('.brand-chip');
+    if (!ch) return;
+    document.querySelectorAll('.brand-chip').forEach(function (c) { c.classList.remove('active'); });
+    ch.classList.add('active');
+    var b = BRANDS[ch.dataset.brand];
+    if (b && b.name) document.getElementById('subName').value = b.name;
+    ch.querySelector('.brand-chip__icon').style.background = ch.dataset.color;
+    // Animate pokeball button glow
+    var btn = document.querySelector('.pokeball-visual__button');
+    if (btn) { btn.style.boxShadow = '0 0 25px ' + ch.dataset.color; setTimeout(function () { btn.style.boxShadow = ''; }, 1500); }
 });
+document.querySelectorAll('.brand-chip').forEach(function (ch) { ch.querySelector('.brand-chip__icon').style.background = ch.dataset.color; });
 
-document.querySelectorAll('.brand-chip').forEach(chip => {
-    chip.querySelector('.brand-chip__icon').style.background = chip.dataset.color;
-});
-
-// Pokéball Capture Animation
-function showPokeballCapture(subName) {
-    const overlay = document.createElement('div');
-    overlay.className = 'pokeball-capture';
-    overlay.innerHTML = `
-        <div>
-            <div class="pokeball">
-                <div class="pokeball__top"></div>
-                <div class="pokeball__line"></div>
-                <div class="pokeball__bottom"></div>
-                <div class="pokeball__center"></div>
-            </div>
-            <div class="pokeball-text">${subName} captured!</div>
-        </div>`;
-    document.body.appendChild(overlay);
-    setTimeout(() => { overlay.style.opacity = '0'; overlay.style.transition = 'opacity .3s'; setTimeout(() => overlay.remove(), 300); }, 2000);
+// Pokeball Capture with Blinking Light + Flash
+function showPokeballCapture(name) {
+    var ov = document.createElement('div');
+    ov.className = 'pokeball-capture';
+    // Generate star burst positions
+    var stars = '';
+    for (var i = 0; i < 10; i++) {
+        var angle = i * 36;
+        var radius = 80 + Math.random() * 40;
+        var sx = Math.cos(angle * Math.PI / 180) * radius;
+        var sy = Math.sin(angle * Math.PI / 180) * radius;
+        stars += '<span style="top:calc(50% + ' + sy + 'px - 12px);left:calc(50% + ' + sx + 'px - 12px);animation-delay:' + (i * 0.08) + 's">\u2728</span>';
+    }
+    ov.innerHTML =
+        '<div class="pokeball-capture__glow"></div>' +
+        '<div class="pokeball-capture__flash"></div>' +
+        '<div style="position:relative;display:flex;flex-direction:column;align-items:center;z-index:2">' +
+        '<div class="pokeball-lg">' +
+        '<div class="pokeball-visual__top"></div>' +
+        '<div class="pokeball-visual__band" style="top:64px"></div>' +
+        '<div class="pokeball-visual__bottom"></div>' +
+        '<div class="pokeball-visual__button"><div class="pokeball-visual__button-inner"></div></div>' +
+        '</div>' +
+        '<div class="pokeball-stars">' + stars + '</div>' +
+        '<div class="pokeball-text">' + name + ' captured!</div>' +
+        '</div>';
+    document.body.appendChild(ov);
+    setTimeout(function () { ov.style.opacity = '0'; ov.style.transition = 'opacity .4s'; setTimeout(function () { ov.remove(); }, 400); }, 2800);
 }
 
-// Add subscription form
-document.getElementById('addSubForm')?.addEventListener('submit', e => {
+// Add Form
+var addForm = document.getElementById('addSubForm');
+if (addForm) addForm.addEventListener('submit', function (e) {
     e.preventDefault();
-    const name = document.getElementById('subName').value.trim();
-    const cost = parseFloat(document.getElementById('subCost').value);
-    const cycle = document.getElementById('subCycle').value;
-    const category = document.getElementById('subCategory').value;
-    const nextDate = document.getElementById('subDate').value;
+    var name = document.getElementById('subName').value.trim();
+    var cost = parseFloat(document.getElementById('subCost').value);
+    var cycle = document.getElementById('subCycle').value;
+    var cat = document.getElementById('subCategory').value;
+    var date = document.getElementById('subDate').value;
     if (!name || isNaN(cost)) return;
-
-    const activeChip = document.querySelector('.brand-chip.active');
-    const brandKey = activeChip?.dataset.brand || 'custom';
-    const brand = BRANDS[brandKey] || BRANDS.custom;
-
-    subscriptions.push({
-        id: nextId++, name, brand: brandKey, cost, cycle, category,
-        nextDate: nextDate || '2026-03-15',
-        color: activeChip?.dataset.color || brand.color,
-        icon: name.charAt(0).toUpperCase(), notify: true,
-    });
-
+    var ac = document.querySelector('.brand-chip.active');
+    var bk = ac ? ac.dataset.brand : 'custom';
+    var b = BRANDS[bk] || BRANDS.custom;
+    subscriptions.push({ id: nextId++, name: name, brand: bk, cost: cost, cycle: cycle, category: cat, nextDate: date || '2026-03-15', color: ac ? ac.dataset.color : b.color, icon: name.charAt(0).toUpperCase(), notify: true, usage: Math.floor(Math.random() * 60) + 40 });
     showPokeballCapture(name);
-    addXP(25, `Captured ${name}!`);
+    addXP(25, name + ' captured!');
     e.target.reset();
-    document.querySelectorAll('.brand-chip').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.brand-chip').forEach(function (c) { c.classList.remove('active'); });
     renderManageList();
 });
 
 function deleteSub(id) {
-    const sub = subscriptions.find(s => s.id === id);
-    subscriptions = subscriptions.filter(s => s.id !== id);
-    if (sub) showToast('Released!', `${sub.name} has been removed`, 'info');
+    var s = subscriptions.find(function (x) { return x.id === id; });
+    subscriptions = subscriptions.filter(function (x) { return x.id !== id; });
+    if (s) showToast('Released!', s.name + ' freed from kingdom', 'info');
     renderManageList();
 }
 
-document.getElementById('addSubQuick')?.addEventListener('click', () => showView('view-add'));
+var addQuick = document.getElementById('addSubQuick');
+if (addQuick) addQuick.addEventListener('click', function () { showView('view-add'); });
 
-// ──────────────────────────────────────────────
-// REMINDERS
-// ──────────────────────────────────────────────
+// Reminders
 function renderReminders() {
-    const now = new Date('2026-03-07');
-    const sorted = [...subscriptions].sort((a, b) => new Date(a.nextDate) - new Date(b.nextDate));
-    const container = document.getElementById('reminderTimeline');
-    if (!container) return;
-
-    const weekLater = new Date(now); weekLater.setDate(weekLater.getDate() + 7);
-    const urgent = sorted.filter(s => { const d = new Date(s.nextDate); return d >= now && d <= weekLater; });
-    const banner = document.getElementById('urgencyBanner');
-    if (banner) {
-        const totalDue = urgent.reduce((s, sub) => s + sub.cost, 0);
-        banner.querySelector('strong').textContent = `${urgent.length} payment${urgent.length !== 1 ? 's' : ''} due this week`;
-        banner.querySelector('span').textContent = `Total: $${totalDue.toFixed(2)} — Don't miss your renewal dates!`;
+    var now = new Date('2026-03-07');
+    var sorted = subscriptions.slice().sort(function (a, b) { return new Date(a.nextDate) - new Date(b.nextDate); });
+    var c = document.getElementById('reminderTimeline');
+    if (!c) return;
+    var wk = new Date(now); wk.setDate(wk.getDate() + 7);
+    var urg = sorted.filter(function (s) { var d = new Date(s.nextDate); return d >= now && d <= wk; });
+    var ban = document.getElementById('urgencyBanner');
+    if (ban) {
+        var td = urg.reduce(function (s, sub) { return s + sub.cost; }, 0);
+        ban.querySelector('strong').textContent = urg.length + ' payment' + (urg.length !== 1 ? 's' : '') + ' due this week';
+        ban.querySelector('span').textContent = 'Total: $' + td.toFixed(2) + ' - Defend your treasury!';
     }
-
-    container.innerHTML = sorted.map(sub => {
-        const d = new Date(sub.nextDate);
-        const diff = Math.ceil((d - now) / (1000 * 60 * 60 * 24));
-        let urgency = 'later';
-        if (diff <= 3) urgency = 'urgent'; else if (diff <= 7) urgency = 'soon';
-        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-        return `
-        <div class="reminder-card glass ${urgency}" role="listitem" tabindex="0" aria-label="${sub.name} due ${d.toLocaleDateString()}">
-            <div class="reminder-date">
-                <span class="reminder-date__day">${d.getDate()}</span>
-                <span class="reminder-date__month">${months[d.getMonth()]}</span>
-            </div>
-            <div class="sub-icon" style="background:${sub.color}20;color:${sub.color}">${sub.icon}</div>
-            <div class="reminder-info">
-                <span class="reminder-name">${sub.name}</span>
-                <span class="reminder-amount">$${sub.cost.toFixed(2)} · ${diff <= 0 ? 'Today' : diff === 1 ? 'Tomorrow' : `in ${diff} days`}</span>
-            </div>
-            <div class="reminder-actions">
-                <button class="reminder-toggle ${sub.notify ? 'on' : ''}" data-id="${sub.id}" title="Toggle notification" aria-label="Toggle notification for ${sub.name}" role="switch" aria-checked="${sub.notify}"></button>
-                <button class="btn btn--warning btn--sm" aria-label="Snooze ${sub.name}">Snooze</button>
-            </div>
-        </div>`;
+    var Mo = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    c.innerHTML = sorted.map(function (s) {
+        var d = new Date(s.nextDate);
+        var diff = Math.ceil((d - now) / 86400000);
+        var u = 'later';
+        if (diff <= 3) u = 'urgent'; else if (diff <= 7) u = 'soon';
+        return '<div class="reminder-card glass ' + u + '" role="listitem" tabindex="0">' +
+            '<div class="reminder-date"><span class="reminder-date__day">' + d.getDate() + '</span><span class="reminder-date__month">' + Mo[d.getMonth()] + '</span></div>' +
+            '<div class="sub-icon" style="background:' + s.color + '20;color:' + s.color + '">' + s.icon + '</div>' +
+            '<div class="reminder-info"><span class="reminder-name">' + s.name + '</span><span class="reminder-amount">$' + s.cost.toFixed(2) + ' \u00B7 ' + (diff <= 0 ? 'Today' : diff === 1 ? 'Tomorrow' : 'in ' + diff + ' days') + '</span></div>' +
+            '<div class="reminder-actions"><button class="reminder-toggle ' + (s.notify ? 'on' : '') + '" data-id="' + s.id + '" role="switch" aria-checked="' + s.notify + '"></button><button class="btn btn--warning btn--sm">Snooze</button></div>' +
+            '</div>';
     }).join('');
-
-    container.querySelectorAll('.reminder-toggle').forEach(toggle => {
-        toggle.addEventListener('click', () => {
-            const id = parseInt(toggle.dataset.id);
-            const sub = subscriptions.find(s => s.id === id);
-            if (sub) { sub.notify = !sub.notify; toggle.classList.toggle('on', sub.notify); toggle.setAttribute('aria-checked', sub.notify); }
+    c.querySelectorAll('.reminder-toggle').forEach(function (t) {
+        t.addEventListener('click', function () {
+            var id = parseInt(t.dataset.id);
+            var s = subscriptions.find(function (x) { return x.id === id; });
+            if (s) { s.notify = !s.notify; t.classList.toggle('on', s.notify); t.setAttribute('aria-checked', String(s.notify)); }
         });
-        toggle.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle.click(); }});
+        t.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); t.click(); } });
     });
 }
 
@@ -799,122 +755,47 @@ function drawBarChart(currentMonthTotal) {
                 ctx.fillText('$' + values[i].toFixed(0), x + barW / 2, y - 8);
             }
             ctx.fillStyle = '#8892A0'; ctx.font = '500 12px Inter'; ctx.fillText(m, x + barW / 2, baseY + 18);
+
         });
-        if (progress < 1) requestAnimationFrame(drawFrame);
+        if (p < 1) requestAnimationFrame(draw);
     }
-    drawFrame();
+    draw();
 }
-
-function drawCategoryMiniDonuts() {
-    const container = document.getElementById('catGrid');
-    if (!container) return;
-    const groups = {};
-    subscriptions.forEach(sub => { groups[sub.category] = (groups[sub.category] || 0) + sub.cost; });
-    const total = Object.values(groups).reduce((a, b) => a + b, 0);
-
-    container.innerHTML = Object.entries(groups).sort((a, b) => b[1] - a[1]).map(([cat, value]) => `
-        <div class="cat-item" tabindex="0" aria-label="${CATEGORY_LABELS[cat] || cat}: $${value.toFixed(2)}">
-            <canvas class="cat-donut" data-cat="${cat}" data-value="${value}" data-total="${total}" width="64" height="64" role="img"></canvas>
-            <span class="cat-item__name">${CATEGORY_LABELS[cat] || cat}</span>
-            <span class="cat-item__value">$${value.toFixed(2)}</span>
-        </div>`).join('');
-
-    container.querySelectorAll('.cat-donut').forEach(canvas => {
-        const ctx = canvas.getContext('2d');
-        const dpr = window.devicePixelRatio || 1;
-        const size = 64;
-        canvas.width = size * dpr; canvas.height = size * dpr;
-        canvas.style.width = size + 'px'; canvas.style.height = size + 'px';
-        ctx.scale(dpr, dpr);
-        const cat = canvas.dataset.cat, value = parseFloat(canvas.dataset.value), totalVal = parseFloat(canvas.dataset.total);
-        const pct = value / totalVal;
-        const cx = size / 2, cy = size / 2, outerR = 28, innerR = 20;
-        // Background ring
-        ctx.beginPath(); ctx.arc(cx, cy, outerR, 0, Math.PI * 2);
-        ctx.arc(cx, cy, innerR, Math.PI * 2, 0, true); ctx.closePath();
-        ctx.fillStyle = 'rgba(255,255,255,0.06)'; ctx.fill();
-        // Animated ring
-        let p = 0;
-        function drawRing() {
+function drawCatDonuts() {
+    var c = document.getElementById('catGrid');
+    if (!c) return;
+    var g = {};
+    subscriptions.forEach(function (s) { g[s.category] = (g[s.category] || 0) + s.cost; });
+    var t = Object.values(g).reduce(function (a, b) { return a + b; }, 0);
+    c.innerHTML = Object.entries(g).sort(function (a, b) { return b[1] - a[1]; }).map(function (entry) {
+        var cat = entry[0], v = entry[1];
+        return '<div class="cat-item"><canvas class="cat-donut" data-cat="' + cat + '" data-value="' + v + '" data-total="' + t + '" width="64" height="64" role="img"></canvas><span class="cat-item__name">' + (CATEGORY_LABELS[cat] || cat) + '</span><span class="cat-item__value">$' + v.toFixed(2) + '</span></div>';
+    }).join('');
+    c.querySelectorAll('.cat-donut').forEach(function (cv) {
+        var ctx = cv.getContext('2d'), dpr = window.devicePixelRatio || 1, sz = 64;
+        cv.width = sz * dpr; cv.height = sz * dpr; cv.style.width = sz + 'px'; cv.style.height = sz + 'px'; ctx.scale(dpr, dpr);
+        var cat = cv.dataset.cat, val = parseFloat(cv.dataset.value), tot = parseFloat(cv.dataset.total), pct = val / tot;
+        var cx = sz / 2, cy = sz / 2, oR = 28, iR = 20;
+        var p = 0;
+        function d() {
             p = Math.min(p + 0.03, 1);
-            ctx.clearRect(0, 0, size, size);
-            ctx.beginPath(); ctx.arc(cx, cy, outerR, 0, Math.PI * 2);
-            ctx.arc(cx, cy, innerR, Math.PI * 2, 0, true); ctx.closePath();
-            ctx.fillStyle = 'rgba(255,255,255,0.06)'; ctx.fill();
-            const start = -Math.PI / 2;
-            const end = start + pct * Math.PI * 2 * p;
-            ctx.beginPath(); ctx.arc(cx, cy, outerR, start, end);
-            ctx.arc(cx, cy, innerR, end, start, true); ctx.closePath();
-            ctx.fillStyle = CATEGORY_COLORS[cat] || '#8892A0'; ctx.fill();
-            ctx.fillStyle = '#F0F0F0'; ctx.font = '700 12px Inter'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.clearRect(0, 0, sz, sz);
+            ctx.beginPath(); ctx.arc(cx, cy, oR, 0, Math.PI * 2); ctx.arc(cx, cy, iR, Math.PI * 2, 0, true); ctx.closePath(); ctx.fillStyle = 'rgba(124,58,237,.08)'; ctx.fill();
+            var sa = -Math.PI / 2, ea = sa + pct * Math.PI * 2 * p;
+            ctx.beginPath(); ctx.arc(cx, cy, oR, sa, ea); ctx.arc(cx, cy, iR, ea, sa, true); ctx.closePath(); ctx.fillStyle = CATEGORY_COLORS[cat] || '#A0A0B8'; ctx.fill();
+            ctx.fillStyle = '#F0F0F5'; ctx.font = '700 12px Inter'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             ctx.fillText(Math.round(pct * 100 * p) + '%', cx, cy);
-            if (p < 1) requestAnimationFrame(drawRing);
+            if (p < 1) requestAnimationFrame(d);
         }
-        drawRing();
+        d();
     });
 }
 
-document.getElementById('exportBtn')?.addEventListener('click', () => { showToast('Exported! 📄', 'Summary has been exported as PDF', 'success'); });
+var exportBtn = document.getElementById('exportBtn');
+if (exportBtn) exportBtn.addEventListener('click', function () { showToast('Exported!', 'Treasury report saved', 'success'); });
 
-// ──────────────────────────────────────────────
-// ONBOARDING
-// ──────────────────────────────────────────────
-const ONBOARDING_STEPS = [
-    { target: '.topbar', title: 'Welcome to SubSync! 🚀', text: 'Your gamified subscription manager. Track expenses, earn XP, and level up your financial game!', position: 'bottom' },
-    { target: '#gamificationCard', title: 'Your Progress 🎮', text: 'Earn XP for every action. Level up, maintain streaks, and unlock badges as you manage your subscriptions!', position: 'top' },
-    { target: '#donutCard', title: 'Expense Breakdown 📊', text: 'Visualize where your money goes with interactive charts. Each category is color-coded for easy tracking.', position: 'left' },
-    { target: '#statBudget', title: 'Budget Ring 💰', text: 'Monitor your budget in real-time. The ring changes color as you approach your limit!', position: 'bottom' },
-];
-let onboardingStep = 0;
-
-function startOnboarding() {
-    if (localStorage.getItem('subsync_onboarded')) return;
-    onboardingStep = 0;
-    showOnboardingStep();
-}
-
-function showOnboardingStep() {
-    const overlay = document.getElementById('onboarding-overlay');
-    if (onboardingStep >= ONBOARDING_STEPS.length) {
-        overlay?.classList.add('hidden');
-        localStorage.setItem('subsync_onboarded', 'true');
-        showToast('Tour Complete! 🎉', 'You earned +50 XP!', 'achievement');
-        addXP(50, 'Completed onboarding tour');
-        return;
-    }
-    overlay?.classList.remove('hidden');
-    const step = ONBOARDING_STEPS[onboardingStep];
-    const targetEl = document.querySelector(step.target);
-    const tooltip = document.getElementById('onboardingTooltip');
-    const title = document.getElementById('onboardingTitle');
-    const text = document.getElementById('onboardingText');
-    const stepEl = document.getElementById('onboardingStep');
-
-    if (title) title.textContent = step.title;
-    if (text) text.textContent = step.text;
-    if (stepEl) stepEl.textContent = `${onboardingStep + 1} / ${ONBOARDING_STEPS.length}`;
-
-    if (targetEl && tooltip) {
-        const rect = targetEl.getBoundingClientRect();
-        tooltip.style.top = (rect.bottom + 16) + 'px';
-        tooltip.style.left = Math.max(16, rect.left) + 'px';
-    }
-}
-
-document.getElementById('onboardingNext')?.addEventListener('click', () => { onboardingStep++; showOnboardingStep(); });
-document.getElementById('onboardingSkip')?.addEventListener('click', () => {
-    document.getElementById('onboarding-overlay')?.classList.add('hidden');
-    localStorage.setItem('subsync_onboarded', 'true');
-});
-
-// ──────────────────────────────────────────────
-// NAV BINDINGS & INIT
-// ──────────────────────────────────────────────
-document.querySelectorAll('#view-dashboard .sidebar__link').forEach(bindNavLink);
-document.getElementById('logoutBtn')?.addEventListener('click', handleLogout);
-
-// Keyboard navigation for insight action
-document.getElementById('insightActionBtn')?.addEventListener('click', () => showView('view-summary'));
-
-// Initialize
+// Nav & Init
+document.querySelectorAll('#view-dashboard .sidebar__link').forEach(bindNav);
+var logoutBtn = document.getElementById('logoutBtn');
+if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
 showView('view-auth');
