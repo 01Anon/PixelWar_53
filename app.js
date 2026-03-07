@@ -428,25 +428,17 @@ signupForm?.addEventListener('submit', async e => {
         });
         const data = await res.json();
         if (res.ok) {
-            currentUser = data.user;
-            addXP(25, 'Account created!'); 
-            showView('view-dashboard'); 
-            startOnboarding();
+            showToast('Success', 'Account created! Please log in.', 'success', 3000);
             
-            // Update UI with real name and initials
-            const initials = currentUser.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
-            document.querySelectorAll('.sidebar__user').forEach(userEl => {
-                const avatar = userEl.querySelector('.avatar');
-                const nameEl = userEl.querySelector('.sidebar__user-name');
-                const emailEl = userEl.querySelector('.sidebar__user-email');
-                if (avatar) avatar.textContent = initials;
-                if (nameEl) nameEl.textContent = currentUser.name;
-                if (emailEl) emailEl.textContent = currentUser.email;
-            });
-            const titleObj = document.querySelector('.topbar__subtitle');
-            if (titleObj && titleObj.textContent.includes('Welcome')) {
-                titleObj.textContent = `Welcome back, ${currentUser.name.split(' ')[0]} 👋`;
-            }
+            // Clear form and switch to login tab
+            signupForm.reset();
+            const loginTab = document.querySelector('.auth-tab[data-tab="login"]');
+            if (loginTab) loginTab.click();
+            
+            // Pre-fill the login email for convenience
+            document.getElementById('loginEmail').value = email;
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('loginPassword').focus();
         } else {
             showToast('Error', data.error, 'danger', 3000);
         }
