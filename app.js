@@ -316,6 +316,8 @@ function showView(viewId) {
     }
 }
 
+let currentUser = null; // Store user data
+
 function cloneSidebars(activeViewId) {
     const original = document.querySelector('#view-dashboard .sidebar');
     document.querySelectorAll('.sidebar[data-clone]').forEach(placeholder => {
@@ -358,13 +360,113 @@ authTabs?.addEventListener('click', e => {
     }
 });
 
-loginForm?.addEventListener('submit', e => { e.preventDefault(); addXP(10, 'Logged in'); showView('view-dashboard'); startOnboarding(); });
-signupForm?.addEventListener('submit', e => { e.preventDefault(); addXP(25, 'Account created!'); showView('view-dashboard'); startOnboarding(); });
-document.getElementById('biometricBtn')?.addEventListener('click', () => { addXP(10, 'Biometric login'); showView('view-dashboard'); startOnboarding(); });
-// Keyboard support for biometric
-document.getElementById('biometricBtn')?.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showView('view-dashboard'); }});
+loginForm?.addEventListener('submit', async e => { 
+    e.preventDefault(); 
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    const btn = document.getElementById('loginBtn');
+    
+    if (!email || !password) return showToast('Error', 'Please enter email and password', 'danger', 3000);
+    
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span>Loading...</span>';
 
-function handleLogout() { showView('view-auth'); }
+    try {
+        const res = await fetch('http://localhost:5000/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            currentUser = data.user;
+            addXP(10, 'Logged in'); 
+            showView('view-dashboard'); 
+            startOnboarding();
+            
+            // Update UI with real name and initials
+            const initials = currentUser.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+            document.querySelectorAll('.sidebar__user').forEach(userEl => {
+                const avatar = userEl.querySelector('.avatar');
+                const nameEl = userEl.querySelector('.sidebar__user-name');
+                const emailEl = userEl.querySelector('.sidebar__user-email');
+                if (avatar) avatar.textContent = initials;
+                if (nameEl) nameEl.textContent = currentUser.name;
+                if (emailEl) emailEl.textContent = currentUser.email;
+            });
+            const titleObj = document.querySelector('.topbar__subtitle');
+            if (titleObj && titleObj.textContent.includes('Welcome')) {
+                titleObj.textContent = `Welcome back, ${currentUser.name.split(' ')[0]} 👋`;
+            }
+        } else {
+            showToast('Error', data.error, 'danger', 3000);
+        }
+    } catch (err) {
+        showToast('Error', 'Backend server offline (Port 5000)', 'danger', 3000);
+    } finally {
+        btn.innerHTML = originalText;
+    }
+});
+
+signupForm?.addEventListener('submit', async e => { 
+    e.preventDefault(); 
+    const name = document.getElementById('signupName').value;
+    const email = document.getElementById('signupEmail').value;
+    const password = document.getElementById('signupPassword').value;
+    const btn = document.getElementById('signupBtn');
+    
+    if (!name || !email || !password) return showToast('Error', 'Please fill all fields', 'danger', 3000);
+    
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span>Loading...</span>';
+
+    try {
+        const res = await fetch('http://localhost:5000/api/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            currentUser = data.user;
+            addXP(25, 'Account created!'); 
+            showView('view-dashboard'); 
+            startOnboarding();
+            
+            // Update UI with real name and initials
+            const initials = currentUser.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+            document.querySelectorAll('.sidebar__user').forEach(userEl => {
+                const avatar = userEl.querySelector('.avatar');
+                const nameEl = userEl.querySelector('.sidebar__user-name');
+                const emailEl = userEl.querySelector('.sidebar__user-email');
+                if (avatar) avatar.textContent = initials;
+                if (nameEl) nameEl.textContent = currentUser.name;
+                if (emailEl) emailEl.textContent = currentUser.email;
+            });
+            const titleObj = document.querySelector('.topbar__subtitle');
+            if (titleObj && titleObj.textContent.includes('Welcome')) {
+                titleObj.textContent = `Welcome back, ${currentUser.name.split(' ')[0]} 👋`;
+            }
+        } else {
+            showToast('Error', data.error, 'danger', 3000);
+        }
+    } catch (err) {
+        showToast('Error', 'Backend server offline (Port 5000)', 'danger', 3000);
+    } finally {
+        btn.innerHTML = originalText;
+    }
+});
+
+document.getElementById('biometricBtn')?.addEventListener('click', () => { showToast('Info', 'Biometrics require HTTPS', 'warning', 3000); });
+// Keyboard support for biometric
+document.getElementById('biometricBtn')?.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showToast('Info', 'Biometrics require HTTPS', 'warning', 3000); }});
+
+function handleLogout() { 
+    currentUser = null;
+    document.getElementById('loginEmail').value = '';
+    document.getElementById('loginPassword').value = '';
+    showView('view-auth'); 
+}
 
 // ──────────────────────────────────────────────
 // DASHBOARD
