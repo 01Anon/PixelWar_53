@@ -125,46 +125,206 @@ function checkBadges() {
         if (!GS.badges.includes(b.id) && b.cond(GS)) { GS.badges.push(b.id); showToast('Badge Unlocked!', b.icon + ' ' + b.name, 'achievement', 4500); }
     });
 }
-function renderGame() {
-    var need = (GS.level + 1) * 200, pct = Math.min(GS.xp / need * 100, 100);
-    var el = function (id) { return document.getElementById(id); };
-    if (el('levelNum')) el('levelNum').textContent = GS.level;
-    if (el('levelTitle')) el('levelTitle').textContent = LEVEL_TITLES[GS.level - 1] || 'Legend';
-    if (el('xpBarFill')) el('xpBarFill').style.width = pct + '%';
-    if (el('xpText')) el('xpText').textContent = GS.xp + ' / ' + need + ' XP';
-    if (el('streakCount')) el('streakCount').textContent = GS.streak;
-    if (el('sidebarLevel')) el('sidebarLevel').textContent = GS.level;
-    if (el('sidebarXpFill')) el('sidebarXpFill').style.width = pct + '%';
-    if (el('sidebarXpText')) el('sidebarXpText').textContent = GS.xp + ' / ' + need + ' XP';
-    if (el('sidebarStreakNum')) el('sidebarStreakNum').textContent = GS.streak;
-    var bg = el('badgeGrid');
-    if (bg) {
-        bg.innerHTML = BADGES.map(function (b) {
-            var unlocked = GS.badges.includes(b.id);
-            return '<div class="badge-item ' + (unlocked ? 'badge-item--unlocked' : 'badge-item--locked') + '" title="' + b.desc + '"><span class="badge-item__icon">' + b.icon + '</span>' + b.name + '</div>';
-        }).join('');
-    }
+let currentUser = null; // Store user data
+
+function cloneSidebars(activeViewId) {
+    const original = document.querySelector('#view-dashboard .sidebar');
+    document.querySelectorAll('.sidebar[data-clone]').forEach(placeholder => {
+        const clone = original.cloneNode(true);
+        clone.removeAttribute('id');
+        clone.setAttribute('data-clone', 'sidebar');
+        clone.querySelectorAll('.sidebar__link').forEach(link => {
+            link.classList.toggle('active', link.dataset.target === activeViewId);
+        });
+        placeholder.replaceWith(clone);
+        clone.querySelectorAll('.sidebar__link').forEach(bindNavLink);
+        const logoutBtn = clone.querySelector('#logoutBtn') || clone.querySelector('.sidebar__user .btn-icon');
+        if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
+    });
 }
 
-// Health Score
-function renderHealthScore() {
-    var avgUsage = subscriptions.reduce(function (s, sub) { return s + (sub.usage || 50); }, 0) / subscriptions.length;
-    var score = Math.round(avgUsage);
-    var circ = 2 * Math.PI * 58;
-    var offset = circ - (score / 100) * circ;
-    var fill = document.getElementById('healthRingFill');
-    var scoreEl = document.getElementById('healthScore');
-    var hint = document.getElementById('healthHint');
-    if (fill) { fill.style.strokeDashoffset = offset; fill.style.stroke = score > 70 ? 'url(#healthGradGood)' : score > 40 ? '#F59E0B' : '#EF4444'; }
-    if (scoreEl) animateCounter(scoreEl, score, 1000);
-    var lowUsage = subscriptions.filter(function (s) { return (s.usage || 50) < 30; });
-    if (hint) hint.textContent = lowUsage.length ? lowUsage.length + ' sub' + (lowUsage.length > 1 ? 's' : '') + ' need attention' : 'All subs healthy!';
-    var svg = document.querySelector('.health-ring');
-    if (svg && !svg.querySelector('#healthGradGood')) {
-        var defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-        defs.innerHTML = '<linearGradient id="healthGradGood" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7C3AED"/><stop offset="100%" stop-color="#22D3EE"/></linearGradient>';
-        svg.prepend(defs);
+function bindNavLink(link) {
+    link.addEventListener('click', e => { e.preventDefault(); showView(link.dataset.target); });
+}
+
+// ──────────────────────────────────────────────
+// AUTH
+// ──────────────────────────────────────────────
+const authTabs = document.getElementById('authTabs');
+const loginForm = document.getElementById('loginForm');
+const signupForm = document.getElementById('signupForm');
+const indicator = document.querySelector('.auth-tab__indicator');
+
+authTabs?.addEventListener('click', e => {
+    const tab = e.target.closest('.auth-tab');
+    if (!tab) return;
+    document.querySelectorAll('.auth-tab').forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
+    tab.classList.add('active'); tab.setAttribute('aria-selected', 'true');
+    if (tab.dataset.tab === 'login') {
+        loginForm.classList.remove('hidden'); signupForm.classList.add('hidden');
+        indicator.style.transform = 'translateX(0)';
+    } else {
+        loginForm.classList.add('hidden'); signupForm.classList.remove('hidden');
+        indicator.style.transform = 'translateX(100%)';
     }
+});
+
+loginForm?.addEventListener('submit', async e => { 
+    e.preventDefault(); 
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    const btn = document.getElementById('loginBtn');
+    
+    if (!email || !password) return showToast('Error', 'Please enter email and password', 'danger', 3000);
+    
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span>Loading...</span>';
+
+    try {
+        const res = await fetch('http://localhost:5000/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            currentUser = data.user;
+            
+            // Clear default/mock subscriptions for the new user session
+            subscriptions = [];
+            nextId = 1;
+            
+            // Reset gamification/streak state if needed
+            if (typeof gameState !== 'undefined') {
+                gameState.xp = 0;
+                gameState.level = 1;
+                gameState.badges = [];
+            } else if (typeof GS !== 'undefined') {
+                GS.xp = 0;
+                GS.level = 1;
+                GS.badges = [];
+            }
+            
+            addXP(10, 'Logged in'); 
+            showView('view-dashboard'); 
+            startOnboarding();
+            
+            // Update UI with real name and initials
+            const initials = currentUser.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+            document.querySelectorAll('.sidebar__user').forEach(userEl => {
+                const avatar = userEl.querySelector('.avatar');
+                const nameEl = userEl.querySelector('.sidebar__user-name');
+                const emailEl = userEl.querySelector('.sidebar__user-email');
+                if (avatar) avatar.textContent = initials;
+                if (nameEl) nameEl.textContent = currentUser.name;
+                if (emailEl) emailEl.textContent = currentUser.email;
+            });
+            const titleObj = document.querySelector('.topbar__subtitle');
+            if (titleObj && titleObj.textContent.includes('Welcome')) {
+                titleObj.textContent = `Welcome back, ${currentUser.name.split(' ')[0]} 👋`;
+            }
+        } else {
+            showToast('Error', data.error, 'danger', 3000);
+        }
+    } catch (err) {
+        showToast('Error', 'Backend server offline (Port 5000)', 'danger', 3000);
+    } finally {
+        btn.innerHTML = originalText;
+    }
+});
+
+signupForm?.addEventListener('submit', async e => { 
+    e.preventDefault(); 
+    const name = document.getElementById('signupName').value;
+    const email = document.getElementById('signupEmail').value;
+    const password = document.getElementById('signupPassword').value;
+    const btn = document.getElementById('signupBtn');
+    
+    if (!name || !email || !password) return showToast('Error', 'Please fill all fields', 'danger', 3000);
+    
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span>Loading...</span>';
+
+    try {
+        const res = await fetch('http://localhost:5000/api/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            showToast('Success', 'Account created! Please log in.', 'success', 3000);
+            
+            // Clear form and switch to login tab
+            signupForm.reset();
+            const loginTab = document.querySelector('.auth-tab[data-tab="login"]');
+            if (loginTab) loginTab.click();
+            
+            // Pre-fill the login email for convenience
+            document.getElementById('loginEmail').value = email;
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('loginPassword').focus();
+        } else {
+            showToast('Error', data.error, 'danger', 3000);
+        }
+    } catch (err) {
+        showToast('Error', 'Backend server offline (Port 5000)', 'danger', 3000);
+    } finally {
+        btn.innerHTML = originalText;
+    }
+});
+
+document.getElementById('biometricBtn')?.addEventListener('click', () => { showToast('Info', 'Biometrics require HTTPS', 'warning', 3000); });
+// Keyboard support for biometric
+document.getElementById('biometricBtn')?.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showToast('Info', 'Biometrics require HTTPS', 'warning', 3000); }});
+
+function handleLogout() { 
+    currentUser = null;
+    document.getElementById('loginEmail').value = '';
+    document.getElementById('loginPassword').value = '';
+    showView('view-auth'); 
+}
+
+// ──────────────────────────────────────────────
+// DASHBOARD
+// ──────────────────────────────────────────────
+function renderDashboard() {
+    const total = subscriptions.reduce((s, sub) => s + sub.cost, 0);
+    // Animated counters
+    const totalEl = document.getElementById('totalSpend');
+    const activeEl = document.getElementById('activeSubs');
+    if (totalEl) animateCounter(totalEl, total, 1200, '$');
+    if (activeEl) animateCounter(activeEl, subscriptions.length, 800);
+
+    document.querySelector('.chart-center__value').textContent = '$' + total.toFixed(2);
+
+    renderBudgetRing();
+    renderGame();
+    renderInsight();
+    drawDonutChart();
+    renderDashSubList();
+}
+
+function renderDashSubList() {
+    const container = document.getElementById('dashSubList');
+    if (!container) return;
+    container.innerHTML = subscriptions.map(sub => {
+        const brand = BRANDS[sub.brand] || BRANDS.custom;
+        const buildingIcon = BUILDING_MAP[sub.brand] || '🏰';
+        return `
+        <div class="sub-item" role="listitem" tabindex="0" aria-label="${sub.name} - $${sub.cost.toFixed(2)} per ${sub.cycle}">
+            <div class="sub-icon" style="background:${sub.color}20;color:${sub.color}">${sub.icon}</div>
+            <div class="sub-info">
+                <span class="sub-name">${sub.name}</span>
+                <span class="sub-category">${CATEGORY_LABELS[sub.category] || sub.category}</span>
+                <span class="sub-building-label">${buildingIcon} ${brand.building || 'Custom Keep'}</span>
+            </div>
+            <div>
+                <span class="sub-price">$${sub.cost.toFixed(2)}</span>
+                <span class="sub-cycle">/${sub.cycle}</span>
+            </div>
+        </div>`;
+    }).join('');
 }
 
 // Kingdom Map
@@ -179,6 +339,8 @@ function renderKingdom() {
             '<span class="kingdom-building__name">' + brand.buildingName + '</span>' +
             '<span class="kingdom-building__cost">$' + sub.cost.toFixed(2) + '</span>' +
             '</div>';
+    }).join('');
+}
     }).join('');
 }
 
@@ -499,38 +661,101 @@ function renderReminders() {
     });
 }
 
-// Insights Screen
-function renderInsightsScreen() { renderForecast(); renderHeatmap(); }
+// ──────────────────────────────────────────────
+// MONTHLY SUMMARY
+// ──────────────────────────────────────────────
+function renderSummary() {
+    const total = subscriptions.reduce((s, sub) => s + sub.cost, 0);
+    const paidCount = subscriptions.filter(s => {
+        const d = new Date(s.nextDate); 
+        return d < new Date(); // Past due dates count as paid for this demo
+    }).length;
+    const totalCount = subscriptions.length;
+    
+    // Animate summary counters
+    const totalEl = document.querySelector('.summary-total .stat-value');
+    if (totalEl) {
+        totalEl.dataset.target = total.toFixed(2);
+        animateCounter(totalEl, total, 1200, '$');
+    }
+    
+    // Example logic for "Savings" - in a real app this would analyze usage
+    const savingsEl = document.querySelector('.summary-saved .stat-value');
+    if (savingsEl) {
+        const potentialSavings = total > 50 ? (total * 0.15).toFixed(2) : 0; // Fake 15% savings suggestion
+        savingsEl.dataset.target = potentialSavings;
+        animateCounter(savingsEl, parseFloat(potentialSavings), 1200, '$');
+    }
+    
+    const countEl = document.querySelector('.summary-count .stat-value');
+    const remainingEl = document.querySelector('.summary-count .stat-hint');
+    if (countEl) countEl.innerHTML = `${paidCount} / ${totalCount}`;
+    if (remainingEl) remainingEl.textContent = `${totalCount - paidCount} remaining this month`;
 
-// Summary
-function renderSummary() { drawBarChart(); drawCatDonuts(); }
-function drawBarChart() {
-    var cv = document.getElementById('barChart');
-    if (!cv) return;
-    var ctx = cv.getContext('2d'), dpr = window.devicePixelRatio || 1;
-    var w = cv.parentElement.clientWidth - 48, h = 260;
-    cv.width = w * dpr; cv.height = h * dpr; cv.style.width = w + 'px'; cv.style.height = h + 'px';
+    // Savings Challenge Bar
+    const challengeTotal = 50;
+    const challengeSaved = total > 0 ? Math.min(challengeTotal, 35) : 0; // Mock progress for demo
+    const fillEl = document.getElementById('savingsFill');
+    if (fillEl) {
+        fillEl.style.width = Math.min((challengeSaved / challengeTotal) * 100, 100) + '%';
+        fillEl.innerHTML = `<span class="savings-challenge__pct">$${challengeSaved} / $${challengeTotal}</span>`;
+    }
+
+    drawBarChart(total);
+    drawCategoryMiniDonuts();
+}
+
+function drawBarChart(currentMonthTotal) {
+    const canvas = document.getElementById('barChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const w = canvas.parentElement.clientWidth - 48;
+    const h = 260;
+    canvas.width = w * dpr; canvas.height = h * dpr;
+    canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
     ctx.scale(dpr, dpr);
-    var mo = ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'];
-    var vals = [198.5, 215.3, 242.8, 255.6, 254.2, 284.97];
-    var mx = Math.max.apply(null, vals) * 1.15;
-    var bW = Math.min(40, (w - 80) / mo.length - 12);
-    var gap = (w - 60) / mo.length;
-    var bY = h - 40, cH = bY - 20;
-    var p = 0;
-    function draw() {
-        p = Math.min(p + 0.025, 1);
+
+    const months = ['Oct','Nov','Dec','Jan','Feb','Mar'];
+    // Use the dynamic total for the current month
+    const values = [0, 0, 0, 0, currentMonthTotal === 0 ? 0 : currentMonthTotal * 0.8, currentMonthTotal]; 
+    const maxVal = Math.max(...values, 100) * 1.15; // fallback max 100
+    const barW = Math.min(40, (w - 80) / months.length - 12);
+    const gap = (w - 60) / months.length;
+    const baseY = h - 40, chartH = baseY - 20;
+
+    let progress = 0;
+    function drawFrame() {
+        progress = Math.min(progress + 0.025, 1);
         ctx.clearRect(0, 0, w, h);
-        ctx.strokeStyle = 'rgba(124,58,237,.06)'; ctx.lineWidth = 1;
-        for (var i = 0; i <= 4; i++) { var y = bY - (cH * i / 4); ctx.beginPath(); ctx.moveTo(40, y); ctx.lineTo(w - 20, y); ctx.stroke(); ctx.fillStyle = '#7A7A96'; ctx.font = '11px Inter'; ctx.textAlign = 'right'; ctx.fillText('$' + Math.round(mx * i / 4), 35, y + 4); }
-        mo.forEach(function (m, i) {
-            var x = 50 + i * gap, barH = (vals[i] / mx) * cH * p, y = bY - barH;
-            var g = ctx.createLinearGradient(x, y, x, bY);
-            if (i === mo.length - 1) { g.addColorStop(0, '#A78BFA'); g.addColorStop(1, 'rgba(124,58,237,.2)'); }
-            else { g.addColorStop(0, 'rgba(244,114,182,.3)'); g.addColorStop(1, 'rgba(244,114,182,.05)'); }
-            var r = 6; ctx.beginPath(); ctx.moveTo(x, bY); ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.lineTo(x + bW - r, y); ctx.quadraticCurveTo(x + bW, y, x + bW, y + r); ctx.lineTo(x + bW, bY); ctx.closePath(); ctx.fillStyle = g; ctx.fill();
-            if (p >= 0.9) { ctx.fillStyle = i === mo.length - 1 ? '#A78BFA' : '#F472B6'; ctx.font = '600 11px Inter'; ctx.textAlign = 'center'; ctx.fillText('$' + vals[i].toFixed(0), x + bW / 2, y - 8); }
-            ctx.fillStyle = '#A0A0B8'; ctx.font = '500 12px Inter'; ctx.fillText(m, x + bW / 2, bY + 18);
+        // Grid
+        ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 1;
+        for (let i = 0; i <= 4; i++) {
+            const y = baseY - (chartH * i / 4);
+            ctx.beginPath(); ctx.moveTo(40, y); ctx.lineTo(w - 20, y); ctx.stroke();
+            ctx.fillStyle = '#555E6E'; ctx.font = '11px Inter'; ctx.textAlign = 'right';
+            ctx.fillText('$' + Math.round(maxVal * i / 4), 35, y + 4);
+        }
+        // Bars
+        months.forEach((m, i) => {
+            const x = 50 + i * gap;
+            const barH = (values[i] / maxVal) * chartH * progress;
+            const y = baseY - barH;
+            const grad = ctx.createLinearGradient(x, y, x, baseY);
+            if (i === months.length - 1) { grad.addColorStop(0, '#00FFAB'); grad.addColorStop(1, 'rgba(0,255,171,0.2)'); }
+            else { grad.addColorStop(0, 'rgba(255,255,255,0.25)'); grad.addColorStop(1, 'rgba(255,255,255,0.05)'); }
+            const r = 6;
+            ctx.beginPath(); ctx.moveTo(x, baseY); ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y); ctx.lineTo(x + barW - r, y);
+            ctx.quadraticCurveTo(x + barW, y, x + barW, y + r); ctx.lineTo(x + barW, baseY);
+            ctx.closePath(); ctx.fillStyle = grad; ctx.fill();
+            if (progress >= 0.9 && values[i] > 0) {
+                ctx.fillStyle = i === months.length - 1 ? '#00FFAB' : '#8892A0';
+                ctx.font = '600 11px Inter'; ctx.textAlign = 'center';
+                ctx.fillText('$' + values[i].toFixed(0), x + barW / 2, y - 8);
+            }
+            ctx.fillStyle = '#8892A0'; ctx.font = '500 12px Inter'; ctx.fillText(m, x + barW / 2, baseY + 18);
+
         });
         if (p < 1) requestAnimationFrame(draw);
     }
