@@ -243,7 +243,7 @@ loginForm?.addEventListener('submit', async e => {
 
             addXP(10, 'Logged in');
             showView('view-dashboard');
-            startOnboarding();
+            if (typeof startOnboarding === 'function') startOnboarding();
 
             // Update UI with real name and initials
             const initials = currentUser.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
@@ -315,13 +315,16 @@ signupForm?.addEventListener('submit', async e => {
 
 document.getElementById('biometricBtn')?.addEventListener('click', () => {
     setAvatarMood('happy');
-    showToast('Info', 'Biometrics require HTTPS', 'warning', 3000);
+    addXP(10, 'Quick access');
+    showView('view-dashboard');
 });
 // Keyboard support for biometric
 document.getElementById('biometricBtn')?.addEventListener('keydown', e => {
     if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        showToast('Info', 'Biometrics require HTTPS', 'warning', 3000);
+        setAvatarMood('happy');
+        addXP(10, 'Quick access');
+        showView('view-dashboard');
     }
 });
 
