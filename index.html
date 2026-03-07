@@ -6,120 +6,89 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SubSync — Subscription Expense Manager</title>
     <meta name="description"
-        content="Track recurring payments and manage subscription expenses with SubSync. Gamified, accessible, and beautiful.">
+        content="Track recurring payments, predict spending, and manage subscription expenses with SubSync.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
 
-    <!-- Skip Navigation for Accessibility -->
-    <a href="#main-content" class="skip-link" id="skipLink">Skip to main content</a>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <div id="toast-container" role="status" aria-live="polite"></div>
 
-    <!-- Toast Notification Container -->
-    <div id="toast-container" role="status" aria-live="polite" aria-label="Notifications"></div>
-
-    <!-- Onboarding Overlay -->
-    <div id="onboarding-overlay" class="onboarding-overlay hidden" role="dialog" aria-modal="true"
-        aria-label="Welcome Tour">
-        <div class="onboarding-spotlight" id="onboardingSpotlight"></div>
-        <div class="onboarding-tooltip" id="onboardingTooltip">
-            <div class="onboarding-tooltip__arrow"></div>
-            <h4 class="onboarding-tooltip__title" id="onboardingTitle"></h4>
-            <p class="onboarding-tooltip__text" id="onboardingText"></p>
-            <div class="onboarding-tooltip__footer">
-                <span class="onboarding-tooltip__step" id="onboardingStep"></span>
-                <div class="onboarding-tooltip__actions">
-                    <button class="btn btn--outline btn--sm" id="onboardingSkip">Skip Tour</button>
-                    <button class="btn btn--primary btn--sm" id="onboardingNext">Next →</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ════════════════════════════════════════════ -->
-    <!-- SCREEN 1 — LOGIN / SIGNUP                    -->
-    <!-- ════════════════════════════════════════════ -->
+    <!-- ═══ SCREEN 1 — AUTH ═══ -->
     <section id="view-auth" class="view active" role="region" aria-label="Authentication">
         <div class="auth-bg">
             <canvas id="particleCanvas" aria-hidden="true"></canvas>
-            <div class="auth-glow auth-glow--1"></div>
-            <div class="auth-glow auth-glow--2"></div>
-            <div class="auth-glow auth-glow--3"></div>
+            <div class="auth-orb auth-orb--1"></div>
+            <div class="auth-orb auth-orb--2"></div>
+            <div class="auth-orb auth-orb--3"></div>
         </div>
         <div class="auth-card glass">
+            <!-- Animated Avatar -->
+            <div class="auth-avatar" id="authAvatar">
+                <div class="auth-avatar__face" id="avatarFace">
+                    <div class="auth-avatar__eyes">
+                        <div class="auth-avatar__eye">
+                            <div class="auth-avatar__pupil"></div>
+                        </div>
+                        <div class="auth-avatar__eye">
+                            <div class="auth-avatar__pupil"></div>
+                        </div>
+                    </div>
+                    <div class="auth-avatar__mouth auth-avatar__mouth--neutral" id="avatarMouth"></div>
+                </div>
+                <div class="auth-avatar__ring"></div>
+            </div>
             <div class="auth-logo">
                 <svg class="auth-logo__icon" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-                    <rect x="4" y="4" width="40" height="40" rx="12" stroke="#00FFAB" stroke-width="3" />
-                    <path d="M16 24h16M24 16v16" stroke="#00FFAB" stroke-width="3" stroke-linecap="round" />
+                    <rect x="4" y="4" width="40" height="40" rx="12" stroke="url(#logoGrad)" stroke-width="3" />
+                    <path d="M16 24h16M24 16v16" stroke="url(#logoGrad)" stroke-width="3" stroke-linecap="round" />
+                    <defs>
+                        <linearGradient id="logoGrad" x1="0" y1="0" x2="48" y2="48">
+                            <stop stop-color="#7C3AED" />
+                            <stop offset="1" stop-color="#F472B6" />
+                        </linearGradient>
+                    </defs>
                 </svg>
                 <h1 class="auth-logo__text">Sub<span class="accent">Sync</span></h1>
             </div>
-            <p class="auth-subtitle">Manage every subscription in one place.</p>
-            <p class="auth-tagline">Track • Save • Level Up 🚀</p>
+            <p class="auth-subtitle">Your gamified subscription kingdom awaits.</p>
+            <p class="auth-tagline">Track • Predict • Conquer 🏰</p>
 
-            <!-- Tab Toggle -->
-            <div class="auth-tabs" id="authTabs" role="tablist" aria-label="Authentication method">
-                <button class="auth-tab active" data-tab="login" role="tab" aria-selected="true"
-                    aria-controls="loginForm" id="tab-login">Log In</button>
-                <button class="auth-tab" data-tab="signup" role="tab" aria-selected="false" aria-controls="signupForm"
-                    id="tab-signup">Sign Up</button>
+            <div class="auth-tabs" id="authTabs" role="tablist">
+                <button class="auth-tab active" data-tab="login" role="tab" aria-selected="true">Log In</button>
+                <button class="auth-tab" data-tab="signup" role="tab" aria-selected="false">Sign Up</button>
                 <span class="auth-tab__indicator" aria-hidden="true"></span>
             </div>
 
-            <!-- Login Form -->
-            <form class="auth-form" id="loginForm" role="tabpanel" aria-labelledby="tab-login">
-                <div class="input-group">
-                    <input type="email" id="loginEmail" required placeholder=" " aria-label="Email address">
-                    <label for="loginEmail">Email address</label>
-                    <span class="input-highlight"></span>
-                </div>
-                <div class="input-group">
-                    <input type="password" id="loginPassword" required placeholder=" " aria-label="Password">
-                    <label for="loginPassword">Password</label>
-                    <span class="input-highlight"></span>
-                </div>
-                <button type="submit" class="btn btn--primary" id="loginBtn">
-                    <span>Log In</span>
+            <form class="auth-form" id="loginForm">
+                <div class="input-group"><input type="email" id="loginEmail" required placeholder=" "><label
+                        for="loginEmail">Email address</label></div>
+                <div class="input-group"><input type="password" id="loginPassword" required placeholder=" "><label
+                        for="loginPassword">Password</label></div>
+                <button type="submit" class="btn btn--primary" id="loginBtn"><span>Enter Kingdom</span>
                     <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                         <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                             stroke-linejoin="round" />
                     </svg>
                 </button>
-                <div class="auth-biometric" id="biometricBtn" role="button" tabindex="0"
-                    aria-label="Use Biometric Login">
-                    <svg viewBox="0 0 24 24" fill="none" width="32" height="32" aria-hidden="true">
-                        <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Z" stroke="#00FFAB" stroke-width="1.5" />
-                        <path d="M8 14s1.5 2 4 2 4-2 4-2" stroke="#00FFAB" stroke-width="1.5" stroke-linecap="round" />
-                        <circle cx="9" cy="10" r="1" fill="#00FFAB" />
-                        <circle cx="15" cy="10" r="1" fill="#00FFAB" />
-                    </svg>
-                    <span>Use Biometric Login</span>
+                <div class="auth-biometric" id="biometricBtn" role="button" tabindex="0"><span>🏰 Quick Access</span>
                 </div>
             </form>
 
-            <!-- Signup Form -->
-            <form class="auth-form hidden" id="signupForm" role="tabpanel" aria-labelledby="tab-signup">
-                <div class="input-group">
-                    <input type="text" id="signupName" required placeholder=" " aria-label="Full name">
-                    <label for="signupName">Full name</label>
-                    <span class="input-highlight"></span>
-                </div>
-                <div class="input-group">
-                    <input type="email" id="signupEmail" required placeholder=" " aria-label="Email address">
-                    <label for="signupEmail">Email address</label>
-                    <span class="input-highlight"></span>
-                </div>
-                <div class="input-group">
-                    <input type="password" id="signupPassword" required placeholder=" " aria-label="Password">
-                    <label for="signupPassword">Password</label>
-                    <span class="input-highlight"></span>
-                </div>
-                <button type="submit" class="btn btn--primary" id="signupBtn">
-                    <span>Create Account</span>
+            <form class="auth-form hidden" id="signupForm">
+                <div class="input-group"><input type="text" id="signupName" required placeholder=" "><label
+                        for="signupName">Full name</label></div>
+                <div class="input-group"><input type="email" id="signupEmail" required placeholder=" "><label
+                        for="signupEmail">Email address</label></div>
+                <div class="input-group"><input type="password" id="signupPassword" required placeholder=" "><label
+                        for="signupPassword">Password</label></div>
+                <button type="submit" class="btn btn--primary"><span>Create Kingdom</span>
                     <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                         <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                             stroke-linejoin="round" />
@@ -129,247 +98,245 @@
         </div>
     </section>
 
-    <!-- ════════════════════════════════════════════ -->
-    <!-- SCREEN 2 — DASHBOARD                         -->
-    <!-- ════════════════════════════════════════════ -->
+    <!-- ═══ SCREEN 2 — DASHBOARD ═══ -->
     <section id="view-dashboard" class="view" role="region" aria-label="Dashboard">
-        <!-- Sidebar -->
         <nav class="sidebar glass" id="sidebar" role="navigation" aria-label="Main Navigation">
             <div class="sidebar__logo">
                 <svg viewBox="0 0 48 48" fill="none" width="32" height="32" aria-hidden="true">
-                    <rect x="4" y="4" width="40" height="40" rx="12" stroke="#00FFAB" stroke-width="3" />
-                    <path d="M16 24h16M24 16v16" stroke="#00FFAB" stroke-width="3" stroke-linecap="round" />
+                    <rect x="4" y="4" width="40" height="40" rx="12" stroke="url(#sLogo)" stroke-width="3" />
+                    <path d="M16 24h16M24 16v16" stroke="url(#sLogo)" stroke-width="3" stroke-linecap="round" />
+                    <defs>
+                        <linearGradient id="sLogo" x1="0" y1="0" x2="48" y2="48">
+                            <stop stop-color="#7C3AED" />
+                            <stop offset="1" stop-color="#F472B6" />
+                        </linearGradient>
+                    </defs>
                 </svg>
                 <span class="sidebar__brand">Sub<span class="accent">Sync</span></span>
             </div>
             <ul class="sidebar__nav">
-                <li><a href="#" class="sidebar__link active" data-target="view-dashboard" id="nav-dashboard"
-                        aria-current="page">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <li><a href="#" class="sidebar__link active" data-target="view-dashboard" id="nav-dashboard"><svg
+                            viewBox="0 0 24 24" fill="none" aria-hidden="true">
                             <rect x="3" y="3" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2" />
                             <rect x="14" y="3" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2" />
                             <rect x="3" y="14" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2" />
                             <rect x="14" y="14" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2" />
-                        </svg>
-                        <span>Dashboard</span>
-                    </a></li>
-                <li><a href="#" class="sidebar__link" data-target="view-add" id="nav-add">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        </svg><span>Kingdom</span></a></li>
+                <li><a href="#" class="sidebar__link" data-target="view-add" id="nav-add"><svg viewBox="0 0 24 24"
+                            fill="none" aria-hidden="true">
                             <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" />
                             <path d="M12 8v8m-4-4h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                        </svg>
-                        <span>Manage Subs</span>
-                    </a></li>
-                <li><a href="#" class="sidebar__link" data-target="view-reminders" id="nav-reminders">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        </svg><span>Capture</span></a></li>
+                <li><a href="#" class="sidebar__link" data-target="view-reminders" id="nav-reminders"><svg
+                            viewBox="0 0 24 24" fill="none" aria-hidden="true">
                             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9ZM13.73 21a2 2 0 0 1-3.46 0"
                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-                        <span>Reminders</span>
-                    </a></li>
-                <li><a href="#" class="sidebar__link" data-target="view-summary" id="nav-summary">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        </svg><span>Alerts</span></a></li>
+                <li><a href="#" class="sidebar__link" data-target="view-insights" id="nav-insights"><svg
+                            viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg><span>Insights</span></a></li>
+                <li><a href="#" class="sidebar__link" data-target="view-summary" id="nav-summary"><svg
+                            viewBox="0 0 24 24" fill="none" aria-hidden="true">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="2"
                                 stroke-linecap="round" stroke-linejoin="round" />
                             <polyline points="7 10 12 15 17 10" stroke="currentColor" stroke-width="2"
                                 stroke-linecap="round" stroke-linejoin="round" />
                             <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2"
                                 stroke-linecap="round" />
-                        </svg>
-                        <span>Summary</span>
-                    </a></li>
+                        </svg><span>Summary</span></a></li>
             </ul>
-
-            <!-- Gamification quick-stats in sidebar -->
             <div class="sidebar__gamification">
-                <div class="sidebar__level-badge" id="sidebarLevelBadge" title="Your Level">
-                    <span class="sidebar__level-num" id="sidebarLevel">5</span>
-                </div>
+                <div class="sidebar__level-badge" id="sidebarLevelBadge"><span id="sidebarLevel">5</span></div>
                 <div class="sidebar__xp-mini">
                     <div class="sidebar__xp-mini-bar">
                         <div class="sidebar__xp-mini-fill" id="sidebarXpFill" style="width:65%"></div>
-                    </div>
-                    <span class="sidebar__xp-text" id="sidebarXpText">650 / 1000 XP</span>
+                    </div><span class="sidebar__xp-text" id="sidebarXpText">650 / 1000 XP</span>
                 </div>
-                <div class="sidebar__streak" id="sidebarStreak" title="Current Streak">
-                    🔥 <span id="sidebarStreakNum">7</span> day streak
-                </div>
+                <div class="sidebar__streak" id="sidebarStreak">🔥 <span id="sidebarStreakNum">7</span> day streak</div>
             </div>
-
             <div class="sidebar__user">
-                <div class="avatar" aria-hidden="true">JS</div>
-                <div class="sidebar__user-info">
-                    <span class="sidebar__user-name">John Smith</span>
-                    <span class="sidebar__user-email">john@subsync.io</span>
-                </div>
-                <button class="btn-icon" id="logoutBtn" title="Log out" aria-label="Log out">
-                    <svg viewBox="0 0 24 24" fill="none" width="18" height="18" aria-hidden="true">
+                <div class="avatar">JS</div>
+                <div class="sidebar__user-info"><span class="sidebar__user-name">John Smith</span><span
+                        class="sidebar__user-email">john@subsync.io</span></div>
+                <button class="btn-icon" id="logoutBtn" title="Log out" aria-label="Log out"><svg viewBox="0 0 24 24"
+                        fill="none" width="18" height="18" aria-hidden="true">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="2"
                             stroke-linecap="round" stroke-linejoin="round" />
                         <polyline points="16 17 21 12 16 7" stroke="currentColor" stroke-width="2"
                             stroke-linecap="round" stroke-linejoin="round" />
                         <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="2"
                             stroke-linecap="round" />
-                    </svg>
-                </button>
+                    </svg></button>
             </div>
         </nav>
 
-        <!-- Main Content -->
         <main class="main-content" id="main-content">
             <header class="topbar">
                 <div>
-                    <h2 class="topbar__title">Dashboard</h2>
-                    <p class="topbar__subtitle">Welcome back, John 👋</p>
+                    <h2 class="topbar__title">Your Kingdom</h2>
+                    <p class="topbar__subtitle">Welcome back, Lord John 👑</p>
                 </div>
                 <div class="topbar__actions">
-                    <button class="btn btn--outline btn--sm" id="addSubQuick" aria-label="Add new subscription">
-                        <svg viewBox="0 0 24 24" fill="none" width="16" height="16" aria-hidden="true">
-                            <path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                        </svg>
-                        Add New
-                    </button>
+                    <button class="btn btn--outline btn--sm" id="addSubQuick">⚔️ Capture New</button>
                 </div>
             </header>
 
-            <!-- Bento Grid -->
             <div class="bento-grid">
                 <!-- Stat Cards -->
-                <div class="bento-card bento-card--stat glass" id="statTotal" tabindex="0"
-                    aria-label="Monthly spend statistics">
-                    <div class="stat-icon stat-icon--green">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <div class="bento-card bento-card--stat glass" id="statTotal">
+                    <div class="stat-icon stat-icon--violet"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                             <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke="currentColor"
                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-                    </div>
-                    <span class="stat-label">Monthly Spend</span>
-                    <span class="stat-value animate-counter" id="totalSpend" data-target="284.97">$0</span>
+                        </svg></div>
+                    <span class="stat-label">Monthly Tribute</span>
+                    <span class="stat-value" id="totalSpend">$284.97</span>
                     <span class="stat-change stat-change--up">+12% vs last month</span>
                 </div>
-
-                <div class="bento-card bento-card--stat glass" id="statActive" tabindex="0"
-                    aria-label="Active subscriptions count">
-                    <div class="stat-icon stat-icon--blue">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <div class="bento-card bento-card--stat glass" id="statActive">
+                    <div class="stat-icon stat-icon--coral"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                             <path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke="currentColor" stroke-width="2"
                                 stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-                    </div>
-                    <span class="stat-label">Active Subscriptions</span>
-                    <span class="stat-value animate-counter" id="activeSubs" data-target="12">0</span>
-                    <span class="stat-change stat-change--neutral">2 added this month</span>
+                        </svg></div>
+                    <span class="stat-label">Active Buildings</span>
+                    <span class="stat-value" id="activeSubs">12</span>
+                    <span class="stat-change stat-change--neutral">2 built this month</span>
                 </div>
 
-                <!-- Budget Progress Ring -->
-                <div class="bento-card bento-card--budget glass" id="statBudget" tabindex="0" aria-label="Budget usage">
-                    <div class="budget-ring-wrapper">
-                        <svg class="budget-ring" viewBox="0 0 120 120" aria-hidden="true">
-                            <circle cx="60" cy="60" r="52" class="budget-ring__bg" />
-                            <circle cx="60" cy="60" r="52" class="budget-ring__fill" id="budgetRingFill"
-                                stroke-dasharray="326.73" stroke-dashoffset="326.73" />
+                <!-- Health Score -->
+                <div class="bento-card bento-card--health glass" id="healthCard">
+                    <div class="health-ring-wrapper">
+                        <svg class="health-ring" viewBox="0 0 140 140" aria-hidden="true">
+                            <circle cx="70" cy="70" r="58" class="health-ring__bg" />
+                            <circle cx="70" cy="70" r="58" class="health-ring__fill" id="healthRingFill"
+                                stroke-dasharray="364.42" stroke-dashoffset="90" />
                         </svg>
-                        <div class="budget-ring__center">
-                            <span class="budget-ring__pct" id="budgetPct">0%</span>
-                            <span class="budget-ring__label">of budget</span>
+                        <div class="health-ring__center">
+                            <span class="health-ring__score" id="healthScore">75</span>
+                            <span class="health-ring__label">Health</span>
                         </div>
                     </div>
-                    <span class="stat-label">Budget Used</span>
-                    <span class="stat-change stat-change--warn" id="budgetRemaining">$115.03 remaining</span>
+                    <span class="stat-label">Subscription Health Score</span>
+                    <span class="stat-hint" id="healthHint">2 subs need attention</span>
                 </div>
 
                 <!-- Gamification Panel -->
-                <div class="bento-card bento-card--gamification glass" id="gamificationCard" tabindex="0"
-                    aria-label="Your gamification progress">
-                    <h3 class="bento-card__title">🎮 Your Progress</h3>
-                    <div class="gamification-level">
-                        <div class="gamification-level__badge" id="levelBadge">
-                            <span class="gamification-level__num" id="levelNum">5</span>
-                        </div>
-                        <div class="gamification-level__info">
-                            <span class="gamification-level__title" id="levelTitle">Budget Warrior</span>
-                            <div class="gamification-xp-bar">
-                                <div class="gamification-xp-bar__fill" id="xpBarFill" style="width:65%"></div>
+                <div class="bento-card bento-card--gamification glass" id="gamificationCard">
+                    <h3 class="bento-card__title">⚔️ Hero Progress</h3>
+                    <div class="gam-hero">
+                        <div class="gam-hero__avatar" id="heroAvatar">
+                            <div class="gam-hero__shield">
+                                <span class="gam-hero__level" id="levelNum">5</span>
                             </div>
-                            <span class="gamification-xp-text" id="xpText">650 / 1000 XP</span>
+                            <div class="gam-hero__crown" id="heroCrown">👑</div>
+                        </div>
+                        <div class="gam-hero__info">
+                            <span class="gam-hero__title" id="levelTitle">Budget Warrior</span>
+                            <div class="gam-xp-bar">
+                                <div class="gam-xp-bar__track">
+                                    <div class="gam-xp-bar__fill" id="xpBarFill" style="width:65%"></div>
+                                </div>
+                            </div>
+                            <span class="gam-xp-text" id="xpText">650 / 1000 XP</span>
                         </div>
                     </div>
-                    <div class="gamification-streak" id="streakDisplay">
-                        <div class="gamification-streak__fire">🔥</div>
-                        <div>
-                            <span class="gamification-streak__count" id="streakCount">7</span>
-                            <span class="gamification-streak__label">day streak!</span>
-                        </div>
+                    <div class="gam-streak" id="streakDisplay">
+                        <div class="gam-streak__flames"><span>🔥</span><span>🔥</span><span>🔥</span></div>
+                        <span class="gam-streak__count" id="streakCount">7</span>
+                        <span class="gam-streak__label">day streak!</span>
                     </div>
-                    <div class="gamification-badges" id="badgesContainer">
-                        <h4 class="gamification-badges__title">Achievements</h4>
-                        <div class="gamification-badges__grid" id="badgeGrid">
-                            <!-- Populated by JS -->
-                        </div>
+                    <div class="gam-badges" id="badgesContainer">
+                        <h4 class="gam-badges__title">Trophies</h4>
+                        <div class="gam-badges__grid" id="badgeGrid"></div>
                     </div>
                 </div>
 
-                <!-- Donut Chart Card -->
-                <div class="bento-card bento-card--chart glass" id="donutCard" tabindex="0"
-                    aria-label="Expense breakdown chart">
-                    <h3 class="bento-card__title">Expense Breakdown</h3>
-                    <div class="chart-container">
-                        <canvas id="donutChart" width="240" height="240"
-                            aria-label="Donut chart showing expense categories" role="img"></canvas>
-                        <div class="chart-center">
-                            <span class="chart-center__value">$284.97</span>
-                            <span class="chart-center__label">Total/mo</span>
-                        </div>
+                <!-- AI Predictions -->
+                <div class="bento-card bento-card--predict glass" id="predictCard">
+                    <h3 class="bento-card__title">🔮 AI Predictions</h3>
+                    <div class="predict-chart" id="predictChart">
+                        <canvas id="predictCanvas" width="300" height="140"></canvas>
+                    </div>
+                    <div class="predict-info">
+                        <div class="predict-row"><span class="predict-label">Next Month Est.</span><span
+                                class="predict-value" id="predictNext">$298.50</span></div>
+                        <div class="predict-row"><span class="predict-label">3-Month Trend</span><span
+                                class="predict-value predict-value--up">↑ 8.2%</span></div>
+                        <div class="predict-row"><span class="predict-label">Yearly Forecast</span><span
+                                class="predict-value" id="predictYear">$3,540</span></div>
+                    </div>
+                </div>
+
+                <!-- Donut Chart -->
+                <div class="bento-card bento-card--chart glass" id="donutCard">
+                    <h3 class="bento-card__title">Treasury Breakdown</h3>
+                    <div class="chart-container"><canvas id="donutChart" width="240" height="240" role="img"></canvas>
+                        <div class="chart-center"><span class="chart-center__value">$284.97</span><span
+                                class="chart-center__label">Total/mo</span></div>
                     </div>
                     <div class="chart-legend" id="donutLegend"></div>
                 </div>
 
-                <!-- Spending Insight Card -->
-                <div class="bento-card bento-card--insight glass" id="insightCard" tabindex="0"
-                    aria-label="Spending insights">
-                    <h3 class="bento-card__title">💡 Spending Insight</h3>
-                    <div class="insight-content" id="insightContent">
-                        <p class="insight-text" id="insightText">Your entertainment spending is <strong>23%
-                                higher</strong> than last month. Consider reviewing unused streaming services.</p>
-                        <div class="insight-action">
-                            <button class="btn btn--outline btn--sm" id="insightActionBtn">View Details →</button>
-                        </div>
-                    </div>
-                    <div class="insight-dots" id="insightDots" aria-label="Insight navigation">
-                        <span class="insight-dot active" data-index="0"></span>
-                        <span class="insight-dot" data-index="1"></span>
-                        <span class="insight-dot" data-index="2"></span>
-                    </div>
+                <!-- Kingdom Map — Subscription Buildings -->
+                <div class="bento-card bento-card--kingdom glass" id="kingdomCard">
+                    <h3 class="bento-card__title">🏰 Your Kingdom</h3>
+                    <div class="kingdom-map" id="kingdomMap" role="list"></div>
                 </div>
 
-                <!-- Active Subscriptions List -->
-                <div class="bento-card bento-card--list glass" id="subListCard" tabindex="0"
-                    aria-label="Active subscriptions list">
-                    <h3 class="bento-card__title">Active Subscriptions</h3>
-                    <div class="sub-list" id="dashSubList" role="list"></div>
+                <!-- Price Alert Feed -->
+                <div class="bento-card bento-card--alerts glass" id="priceAlertCard">
+                    <h3 class="bento-card__title">📢 Price Alerts</h3>
+                    <div class="alert-feed" id="alertFeed">
+                        <div class="alert-item alert-item--increase">
+                            <div class="alert-item__icon">📈</div>
+                            <div class="alert-item__body"><strong>Netflix</strong> may increase to
+                                <strong>$17.99</strong> next quarter<span class="alert-item__time">Predicted • Market
+                                    data</span></div>
+                        </div>
+                        <div class="alert-item alert-item--save">
+                            <div class="alert-item__icon">💰</div>
+                            <div class="alert-item__body"><strong>Spotify + Apple Music</strong> overlap detected. Save
+                                <strong>$10.99/mo</strong><span class="alert-item__time">Smart suggestion</span></div>
+                        </div>
+                        <div class="alert-item alert-item--new">
+                            <div class="alert-item__icon">✨</div>
+                            <div class="alert-item__body"><strong>YouTube Premium</strong> family plan saves
+                                <strong>$5/mo</strong> vs individual<span class="alert-item__time">Family split
+                                    available</span></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
     </section>
 
-    <!-- ════════════════════════════════════════════ -->
-    <!-- SCREEN 3 — ADD / MANAGE SUBSCRIPTIONS        -->
-    <!-- ════════════════════════════════════════════ -->
-    <section id="view-add" class="view" role="region" aria-label="Manage Subscriptions">
-        <nav class="sidebar glass" data-clone="sidebar" role="navigation" aria-label="Main Navigation"></nav>
+    <!-- ═══ SCREEN 3 — CAPTURE (Add Subscription) ═══ -->
+    <section id="view-add" class="view" role="region" aria-label="Capture Subscription">
+        <nav class="sidebar glass" data-clone="sidebar"></nav>
         <main class="main-content">
             <header class="topbar">
                 <div>
-                    <h2 class="topbar__title">Manage Subscriptions</h2>
-                    <p class="topbar__subtitle">Add, edit, or remove your subscriptions</p>
+                    <h2 class="topbar__title">⚔️ Capture Station</h2>
+                    <p class="topbar__subtitle">Deploy your Pokéball to capture a new subscription</p>
                 </div>
             </header>
-
             <div class="manage-layout">
-                <!-- Add Form -->
                 <div class="add-form-card glass">
-                    <h3 class="bento-card__title">Add New Subscription</h3>
-                    <div class="brand-picker" id="brandPicker" role="listbox" aria-label="Select a brand">
+                    <!-- Pokéball Visual -->
+                    <div class="pokeball-display" id="pokeballDisplay">
+                        <div class="pokeball-visual">
+                            <div class="pokeball-visual__top"></div>
+                            <div class="pokeball-visual__band"></div>
+                            <div class="pokeball-visual__bottom"></div>
+                            <div class="pokeball-visual__button" id="pokeButton">
+                                <div class="pokeball-visual__button-inner"></div>
+                            </div>
+                        </div>
+                        <p class="pokeball-hint">Select a target below, then capture!</p>
+                    </div>
+                    <h3 class="bento-card__title">Choose Your Target</h3>
+                    <div class="brand-picker" id="brandPicker" role="listbox">
                         <button class="brand-chip" data-brand="netflix" data-color="#E50914" role="option"><span
                                 class="brand-chip__icon">N</span>Netflix</button>
                         <button class="brand-chip" data-brand="spotify" data-color="#1DB954" role="option"><span
@@ -384,32 +351,23 @@
                                 class="brand-chip__icon">G</span>GitHub</button>
                         <button class="brand-chip" data-brand="icloud" data-color="#3B82F6" role="option"><span
                                 class="brand-chip__icon">i</span>iCloud</button>
-                        <button class="brand-chip" data-brand="custom" data-color="#00FFAB" role="option"><span
+                        <button class="brand-chip" data-brand="custom" data-color="#7C3AED" role="option"><span
                                 class="brand-chip__icon">+</span>Custom</button>
                     </div>
                     <form class="add-form" id="addSubForm">
-                        <div class="input-group">
-                            <input type="text" id="subName" required placeholder=" " aria-label="Subscription name">
-                            <label for="subName">Subscription Name</label>
-                        </div>
+                        <div class="input-group"><input type="text" id="subName" required placeholder=" "><label
+                                for="subName">Subscription Name</label></div>
                         <div class="form-row">
-                            <div class="input-group">
-                                <input type="number" id="subCost" step="0.01" required placeholder=" "
-                                    aria-label="Cost in dollars">
-                                <label for="subCost">Cost ($)</label>
-                            </div>
-                            <div class="input-group">
-                                <select id="subCycle" required aria-label="Billing cycle">
+                            <div class="input-group"><input type="number" id="subCost" step="0.01" required
+                                    placeholder=" "><label for="subCost">Cost ($)</label></div>
+                            <div class="input-group"><select id="subCycle" required>
                                     <option value="monthly">Monthly</option>
                                     <option value="yearly">Yearly</option>
                                     <option value="weekly">Weekly</option>
-                                </select>
-                                <label for="subCycle" class="select-label">Billing Cycle</label>
-                            </div>
+                                </select><label for="subCycle" class="select-label">Billing Cycle</label></div>
                         </div>
                         <div class="form-row">
-                            <div class="input-group">
-                                <select id="subCategory" required aria-label="Category">
+                            <div class="input-group"><select id="subCategory" required>
                                     <option value="entertainment">🎬 Entertainment</option>
                                     <option value="productivity">⚡ Productivity</option>
                                     <option value="cloud">☁️ Cloud & Storage</option>
@@ -417,135 +375,155 @@
                                     <option value="news">📰 News & Media</option>
                                     <option value="fitness">💪 Fitness</option>
                                     <option value="other">📦 Other</option>
-                                </select>
-                                <label for="subCategory" class="select-label">Category</label>
-                            </div>
-                            <div class="input-group">
-                                <input type="date" id="subDate" required placeholder=" " aria-label="Next billing date">
-                                <label for="subDate" class="select-label">Next Billing Date</label>
-                            </div>
+                                </select><label for="subCategory" class="select-label">Category</label></div>
+                            <div class="input-group"><input type="date" id="subDate" required placeholder=" "><label
+                                    for="subDate" class="select-label">Next Billing Date</label></div>
                         </div>
-                        <button type="submit" class="btn btn--primary btn--full">
-                            <svg viewBox="0 0 24 24" fill="none" width="18" height="18" aria-hidden="true">
-                                <path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" />
-                            </svg>
-                            Add Subscription
-                        </button>
+                        <button type="submit" class="btn btn--primary btn--full btn--capture">🎯 Capture
+                            Subscription!</button>
                     </form>
                 </div>
-
-                <!-- Current Subscriptions -->
                 <div class="manage-list-card glass">
-                    <h3 class="bento-card__title">Your Subscriptions</h3>
+                    <h3 class="bento-card__title">Captured Subs</h3>
                     <div class="manage-list" id="manageSubList" role="list"></div>
                 </div>
             </div>
         </main>
     </section>
 
-    <!-- ════════════════════════════════════════════ -->
-    <!-- SCREEN 4 — PAYMENT REMINDERS                 -->
-    <!-- ════════════════════════════════════════════ -->
+    <!-- ═══ SCREEN 4 — REMINDERS ═══ -->
     <section id="view-reminders" class="view" role="region" aria-label="Payment Reminders">
-        <nav class="sidebar glass" data-clone="sidebar" role="navigation" aria-label="Main Navigation"></nav>
+        <nav class="sidebar glass" data-clone="sidebar"></nav>
         <main class="main-content">
             <header class="topbar">
                 <div>
-                    <h2 class="topbar__title">Payment Reminders</h2>
+                    <h2 class="topbar__title">⚠️ Battle Alerts</h2>
                     <p class="topbar__subtitle">Upcoming payments and due dates</p>
                 </div>
             </header>
-
             <div class="reminders-layout">
-                <!-- Urgency Banner -->
-                <div class="urgency-banner glass" id="urgencyBanner" role="alert" aria-live="assertive">
+                <div class="urgency-banner glass" id="urgencyBanner" role="alert">
                     <div class="urgency-banner__icon">⚡</div>
-                    <div class="urgency-banner__content">
-                        <strong>3 payments due this week</strong>
-                        <span>Total: $45.97 — Don't miss your renewal dates!</span>
+                    <div class="urgency-banner__content"><strong>3 payments due this week</strong><span>Total: $45.97 —
+                            Don't miss your renewal dates!</span></div>
+                </div>
+                <div class="reminder-timeline" id="reminderTimeline" role="list"></div>
+            </div>
+        </main>
+    </section>
+
+    <!-- ═══ SCREEN 5 — AI INSIGHTS (NEW) ═══ -->
+    <section id="view-insights" class="view" role="region" aria-label="AI Insights">
+        <nav class="sidebar glass" data-clone="sidebar"></nav>
+        <main class="main-content">
+            <header class="topbar">
+                <div>
+                    <h2 class="topbar__title">🔮 Smart Insights</h2>
+                    <p class="topbar__subtitle">AI-powered subscription intelligence</p>
+                </div>
+            </header>
+            <div class="insights-grid">
+                <!-- Smart Cancel Suggestions -->
+                <div class="bento-card glass insights-card insights-card--cancel">
+                    <h3 class="bento-card__title">🗑️ Smart Cancellation Suggestions</h3>
+                    <div class="cancel-list" id="cancelSuggestions">
+                        <div class="cancel-item">
+                            <div class="cancel-item__icon" style="background:#FC3C4420;color:#FC3C44">A</div>
+                            <div class="cancel-item__body"><strong>Apple Music</strong> — Low usage detected<span>You
+                                    haven't opened this in 23 days. Save <strong>$10.99/mo</strong></span></div><button
+                                class="btn btn--danger btn--sm">Cancel</button>
+                        </div>
+                        <div class="cancel-item">
+                            <div class="cancel-item__icon" style="background:#113CCF20;color:#113CCF">D</div>
+                            <div class="cancel-item__body"><strong>Disney+</strong> — Overlaps with Netflix<span>82%
+                                    content overlap. Save <strong>$7.99/mo</strong></span></div><button
+                                class="btn btn--danger btn--sm">Cancel</button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Timeline -->
-                <div class="reminder-timeline" id="reminderTimeline" role="list"
-                    aria-label="Upcoming payments timeline">
-                    <!-- Populated by JS -->
+                <!-- Family Split Calculator -->
+                <div class="bento-card glass insights-card insights-card--split">
+                    <h3 class="bento-card__title">👨‍👩‍👧‍👦 Family Split Calculator</h3>
+                    <div class="split-calc" id="splitCalc">
+                        <div class="split-item">
+                            <div class="split-item__name"><span class="sub-icon"
+                                    style="background:#E5091420;color:#E50914">N</span>Netflix Family — $22.99</div>
+                            <div class="split-item__result"><span class="split-item__per">$5.75</span><span
+                                    class="split-item__label">/ person (4 members)</span></div>
+                            <div class="split-item__savings">Save $10.24 vs individual</div>
+                        </div>
+                        <div class="split-item">
+                            <div class="split-item__name"><span class="sub-icon"
+                                    style="background:#1DB95420;color:#1DB954">S</span>Spotify Family — $16.99</div>
+                            <div class="split-item__result"><span class="split-item__per">$2.83</span><span
+                                    class="split-item__label">/ person (6 members)</span></div>
+                            <div class="split-item__savings">Save $7.16 vs individual</div>
+                        </div>
+                        <div class="split-item">
+                            <div class="split-item__name"><span class="sub-icon"
+                                    style="background:#FF000020;color:#FF0000">Y</span>YouTube Family — $22.99</div>
+                            <div class="split-item__result"><span class="split-item__per">$4.60</span><span
+                                    class="split-item__label">/ person (5 members)</span></div>
+                            <div class="split-item__savings">Save $9.39 vs individual</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Spending Forecast -->
+                <div class="bento-card glass insights-card insights-card--forecast">
+                    <h3 class="bento-card__title">📊 Spending Forecast</h3>
+                    <canvas id="forecastChart" width="500" height="200" role="img"></canvas>
+                    <div class="forecast-legend"><span class="forecast-legend__actual">● Actual</span><span
+                            class="forecast-legend__predicted">● Predicted</span></div>
+                </div>
+
+                <!-- Usage Heatmap -->
+                <div class="bento-card glass insights-card insights-card--usage">
+                    <h3 class="bento-card__title">📅 Usage Heatmap</h3>
+                    <div class="usage-heatmap" id="usageHeatmap"></div>
+                    <p class="usage-hint">Darker = more active. Gray = inactive subscriptions.</p>
                 </div>
             </div>
         </main>
     </section>
 
-    <!-- ════════════════════════════════════════════ -->
-    <!-- SCREEN 5 — MONTHLY SUMMARY                   -->
-    <!-- ════════════════════════════════════════════ -->
+    <!-- ═══ SCREEN 6 — MONTHLY SUMMARY ═══ -->
     <section id="view-summary" class="view" role="region" aria-label="Monthly Summary">
-        <nav class="sidebar glass" data-clone="sidebar" role="navigation" aria-label="Main Navigation"></nav>
+        <nav class="sidebar glass" data-clone="sidebar"></nav>
         <main class="main-content">
             <header class="topbar">
                 <div>
-                    <h2 class="topbar__title">Monthly Summary</h2>
-                    <p class="topbar__subtitle">March 2026 — Spending overview</p>
+                    <h2 class="topbar__title">📜 Monthly Scroll</h2>
+                    <p class="topbar__subtitle">March 2026 — Kingdom treasury report</p>
                 </div>
-                <div class="topbar__actions">
-                    <button class="btn btn--outline btn--sm" id="exportBtn" aria-label="Export monthly summary">
-                        <svg viewBox="0 0 24 24" fill="none" width="16" height="16" aria-hidden="true">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round" />
-                            <polyline points="7 10 12 15 17 10" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round" />
-                            <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" />
-                        </svg>
-                        Export
-                    </button>
+                <div class="topbar__actions"><button class="btn btn--outline btn--sm" id="exportBtn">📤 Export</button>
                 </div>
             </header>
-
             <div class="summary-bento">
-                <!-- Summary Stats Row -->
-                <div class="bento-card glass summary-total" tabindex="0" aria-label="Total spending this month">
-                    <span class="stat-label">Total This Month</span>
-                    <span class="stat-value stat-value--large animate-counter" data-target="284.97"
-                        data-prefix="$">$0</span>
-                    <div class="summary-vs">
-                        <span class="stat-change stat-change--up">↑ 12% vs Feb</span>
-                    </div>
+                <div class="bento-card glass summary-total"><span class="stat-label">Total Tribute</span><span
+                        class="stat-value stat-value--large">$284.97</span>
+                    <div class="summary-vs"><span class="stat-change stat-change--up">↑ 12% vs Feb</span></div>
                 </div>
-                <div class="bento-card glass summary-saved" tabindex="0" aria-label="Potential savings">
-                    <span class="stat-label">Potential Savings</span>
-                    <span class="stat-value stat-value--large accent animate-counter" data-target="34.99"
-                        data-prefix="$">$0</span>
-                    <span class="stat-hint">2 unused subscriptions detected</span>
-                </div>
-                <div class="bento-card glass summary-count" tabindex="0" aria-label="Subscriptions paid">
-                    <span class="stat-label">Subscriptions Paid</span>
-                    <span class="stat-value stat-value--large">10 / 12</span>
-                    <span class="stat-hint">2 remaining this month</span>
-                </div>
-
-                <!-- Savings Challenge -->
-                <div class="bento-card glass savings-challenge" tabindex="0" aria-label="Savings challenge progress">
-                    <h3 class="bento-card__title">🏆 Savings Challenge</h3>
+                <div class="bento-card glass summary-saved"><span class="stat-label">Potential Savings</span><span
+                        class="stat-value stat-value--large accent">$34.99</span><span class="stat-hint">2 unused
+                        buildings detected</span></div>
+                <div class="bento-card glass summary-count"><span class="stat-label">Buildings Paid</span><span
+                        class="stat-value stat-value--large">10 / 12</span><span class="stat-hint">2 remaining this
+                        month</span></div>
+                <div class="bento-card glass savings-challenge">
+                    <h3 class="bento-card__title">🏆 Savings Quest</h3>
                     <p class="savings-challenge__text">Save <strong>$50</strong> this month by cutting unused subs</p>
                     <div class="savings-challenge__bar">
-                        <div class="savings-challenge__fill" id="savingsFill" style="width:70%">
-                            <span class="savings-challenge__pct">$35 / $50</span>
-                        </div>
-                    </div>
-                    <span class="savings-challenge__reward">🎁 Reward: "Penny Pincher" badge</span>
+                        <div class="savings-challenge__fill" id="savingsFill" style="width:70%"><span
+                                class="savings-challenge__pct">$35 / $50</span></div>
+                    </div><span class="savings-challenge__reward">🎁 Reward: "Penny Pincher" badge</span>
                 </div>
-
-                <!-- Bar Chart -->
-                <div class="bento-card bento-card--bar glass" tabindex="0"
-                    aria-label="Monthly spending comparison chart">
-                    <h3 class="bento-card__title">Monthly Comparison</h3>
-                    <canvas id="barChart" width="600" height="260" role="img"
-                        aria-label="Bar chart comparing monthly spending"></canvas>
+                <div class="bento-card bento-card--bar glass">
+                    <h3 class="bento-card__title">Monthly Comparison</h3><canvas id="barChart" width="600" height="260"
+                        role="img"></canvas>
                 </div>
-
-                <!-- Category Mini-Donuts -->
-                <div class="bento-card bento-card--cats glass" tabindex="0" aria-label="Category breakdown charts">
+                <div class="bento-card bento-card--cats glass">
                     <h3 class="bento-card__title">Category Breakdown</h3>
                     <div class="cat-grid" id="catGrid"></div>
                 </div>
