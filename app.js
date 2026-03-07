@@ -269,23 +269,54 @@ document.querySelectorAll('#loginForm input, #signupForm input').forEach(functio
     inp.addEventListener('blur', function () { setAvatarMood('neutral'); });
 });
 
-/* Login - just navigate to dashboard */
+/* ── Auth Logic with Memory Registry ── */
+var registeredUsers = []; // In-memory user database
+
+/* Login with Validation */
 if (loginForm) loginForm.addEventListener('submit', function (e) {
     e.preventDefault();
-    setAvatarMood('happy');
-    suppressToasts = false;
-    addXP(10, 'Entered the kingdom');
-    showView('view-dashboard');
+    var email = document.getElementById('loginEmail').value;
+    var pass = document.getElementById('loginPassword').value;
+    
+    var userExists = registeredUsers.find(function(u) { return u.email === email && u.password === pass; });
+    
+    if (userExists) {
+        setAvatarMood('happy');
+        suppressToasts = false;
+        addXP(10, 'Entered the kingdom');
+        showView('view-dashboard');
+    } else {
+        setAvatarMood('neutral');
+        showToast('Access Denied', 'Invalid email or password. Please sign up first.', 'error', 4000);
+    }
 });
 
-/* Signup - switch to login tab */
+/* Signup checks and Memory Storage */
 if (signupForm) signupForm.addEventListener('submit', function (e) {
     e.preventDefault();
+    var name = document.getElementById('signupName').value;
+    var email = document.getElementById('signupEmail').value;
+    var pass = document.getElementById('signupPassword').value;
+    
+    var alreadyExists = registeredUsers.find(function(u) { return u.email === email; });
+    
+    if (alreadyExists) {
+        showToast('Error', 'An account with this email already exists.', 'error', 4000);
+        return;
+    }
+    
+    registeredUsers.push({ name: name, email: email, password: pass });
     setAvatarMood('happy');
-    showToast('Account Created!', 'Welcome to SubSync!', 'success', 3000);
-    signupForm.reset();
+    showToast('Account Created!', 'Welcome ' + name.split(' ')[0] + '! You can now log in.', 'success', 3000);
+    
+    // Switch to login tab safely
     var loginTab = document.querySelector('.auth-tab[data-tab="login"]');
     if (loginTab) loginTab.click();
+    
+    // Pre-fill email for convenience
+    var loginEmailField = document.getElementById('loginEmail');
+    if (loginEmailField) loginEmailField.value = email;
+    signupForm.reset();
 });
 
 /* Quick Access */
