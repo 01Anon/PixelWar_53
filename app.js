@@ -709,17 +709,47 @@ function renderReminders() {
 // MONTHLY SUMMARY
 // ──────────────────────────────────────────────
 function renderSummary() {
+    const total = subscriptions.reduce((s, sub) => s + sub.cost, 0);
+    const paidCount = subscriptions.filter(s => {
+        const d = new Date(s.nextDate); 
+        return d < new Date(); // Past due dates count as paid for this demo
+    }).length;
+    const totalCount = subscriptions.length;
+    
     // Animate summary counters
-    document.querySelectorAll('.summary-bento .animate-counter').forEach(el => {
-        const target = parseFloat(el.dataset.target);
-        const prefix = el.dataset.prefix || '';
-        if (!isNaN(target)) animateCounter(el, target, 1200, prefix);
-    });
-    drawBarChart();
+    const totalEl = document.querySelector('.summary-total .stat-value');
+    if (totalEl) {
+        totalEl.dataset.target = total.toFixed(2);
+        animateCounter(totalEl, total, 1200, '$');
+    }
+    
+    // Example logic for "Savings" - in a real app this would analyze usage
+    const savingsEl = document.querySelector('.summary-saved .stat-value');
+    if (savingsEl) {
+        const potentialSavings = total > 50 ? (total * 0.15).toFixed(2) : 0; // Fake 15% savings suggestion
+        savingsEl.dataset.target = potentialSavings;
+        animateCounter(savingsEl, parseFloat(potentialSavings), 1200, '$');
+    }
+    
+    const countEl = document.querySelector('.summary-count .stat-value');
+    const remainingEl = document.querySelector('.summary-count .stat-hint');
+    if (countEl) countEl.innerHTML = `${paidCount} / ${totalCount}`;
+    if (remainingEl) remainingEl.textContent = `${totalCount - paidCount} remaining this month`;
+
+    // Savings Challenge Bar
+    const challengeTotal = 50;
+    const challengeSaved = total > 0 ? Math.min(challengeTotal, 35) : 0; // Mock progress for demo
+    const fillEl = document.getElementById('savingsFill');
+    if (fillEl) {
+        fillEl.style.width = Math.min((challengeSaved / challengeTotal) * 100, 100) + '%';
+        fillEl.innerHTML = `<span class="savings-challenge__pct">$${challengeSaved} / $${challengeTotal}</span>`;
+    }
+
+    drawBarChart(total);
     drawCategoryMiniDonuts();
 }
 
-function drawBarChart() {
+function drawBarChart(currentMonthTotal) {
     const canvas = document.getElementById('barChart');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -731,8 +761,9 @@ function drawBarChart() {
     ctx.scale(dpr, dpr);
 
     const months = ['Oct','Nov','Dec','Jan','Feb','Mar'];
-    const values = [198.50,215.30,242.80,255.60,254.20,284.97];
-    const maxVal = Math.max(...values) * 1.15;
+    // Use the dynamic total for the current month
+    const values = [0, 0, 0, 0, currentMonthTotal === 0 ? 0 : currentMonthTotal * 0.8, currentMonthTotal]; 
+    const maxVal = Math.max(...values, 100) * 1.15; // fallback max 100
     const barW = Math.min(40, (w - 80) / months.length - 12);
     const gap = (w - 60) / months.length;
     const baseY = h - 40, chartH = baseY - 20;
@@ -762,7 +793,7 @@ function drawBarChart() {
             ctx.quadraticCurveTo(x, y, x + r, y); ctx.lineTo(x + barW - r, y);
             ctx.quadraticCurveTo(x + barW, y, x + barW, y + r); ctx.lineTo(x + barW, baseY);
             ctx.closePath(); ctx.fillStyle = grad; ctx.fill();
-            if (progress >= 0.9) {
+            if (progress >= 0.9 && values[i] > 0) {
                 ctx.fillStyle = i === months.length - 1 ? '#00FFAB' : '#8892A0';
                 ctx.font = '600 11px Inter'; ctx.textAlign = 'center';
                 ctx.fillText('$' + values[i].toFixed(0), x + barW / 2, y - 8);
