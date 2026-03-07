@@ -233,8 +233,9 @@ function renderGamification() {
     if (badgeGrid) {
         badgeGrid.innerHTML = BADGES_DEF.map(b => {
             const unlocked = gameState.badges.includes(b.id);
-            return `<div class="badge-item ${unlocked ? 'badge-item--unlocked' : 'badge-item--locked'}" title="${b.desc}">
+            return `<div class="badge-item ${unlocked ? 'badge-item--unlocked' : 'badge-item--locked'}">
                 <span class="badge-item__icon">${b.icon}</span>${b.name}
+                <span class="badge-item__info tooltip" title="${b.desc}">i</span>
             </div>`;
         }).join('');
     }
@@ -380,6 +381,18 @@ loginForm?.addEventListener('submit', async e => {
         const data = await res.json();
         if (res.ok) {
             currentUser = data.user;
+            
+            // Clear default/mock subscriptions for the new user session
+            subscriptions = [];
+            nextId = 1;
+            
+            // Reset gamification/streak state if needed
+            if (typeof gameState !== 'undefined') {
+                gameState.xp = 0;
+                gameState.level = 1;
+                gameState.badges = [];
+            }
+            
             addXP(10, 'Logged in'); 
             showView('view-dashboard'); 
             startOnboarding();
