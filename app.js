@@ -39,7 +39,13 @@ var BADGES = [
     { id: 'collector', name: 'Collector', icon: '\uD83D\uDCE6', desc: 'Track 10+ subs', cond: function () { return subscriptions.length >= 10; } },
     { id: 'penny', name: 'Penny Pincher', icon: '\uD83D\uDCB0', desc: 'Save $50+', cond: function (g) { return g.saved >= 50; } },
     { id: 'organized', name: 'Organized', icon: '\uD83D\uDCCB', desc: '4+ categories', cond: function () { var s = new Set(subscriptions.map(function (x) { return x.category; })); return s.size >= 4; } },
-    { id: 'explorer', name: 'Explorer', icon: '\uD83D\uDDFA\uFE0F', desc: 'Visit all screens', cond: function (g) { return g.screens >= 5; } }
+    { id: 'explorer', name: 'Explorer', icon: '\uD83D\uDDFA\uFE0F', desc: 'Visit all screens', cond: function (g) { return g.screens >= 5; } },
+    { id: 'centurion', name: 'Centurion', icon: '\uD83D\uDCAF', desc: 'Save $100+', cond: function (g) { return g.saved >= 100; } },
+    { id: 'streak_14', name: 'Unstoppable', icon: '\uD83C\uDF87', desc: '14-day streak', cond: function (g) { return g.streak >= 14; } },
+    { id: 'grand_master', name: 'Grand Master', icon: '\uD83C\uDFF0', desc: 'Reach level 10', cond: function (g) { return g.level >= 10; } },
+    { id: 'variety', name: 'Variety King', icon: '\uD83C\uDDFB', desc: '6+ categories', cond: function () { var s = new Set(subscriptions.map(function (x) { return x.category; })); return s.size >= 6; } },
+    { id: 'high_roller', name: 'High Roller', icon: '\uD83D\uDD31', desc: 'Spend > $400/mo', cond: function () { var total = subscriptions.reduce(function (s, sub) { return s + sub.cost; }, 0); return total > 400; } },
+    { id: 'efficient', name: 'Efficiency Pro', icon: '\u26A1', desc: 'All subs usage > 70%', cond: function () { return subscriptions.length > 0 && subscriptions.every(function (s) { return (s.usage || 50) > 70; }); } }
 ];
 var GS = { xp: 650, level: 5, streak: 7, badges: ['early_bird', 'streak_3', 'streak_7', 'collector', 'organized'], remChecked: 5, underBudget: true, saved: 34.99, screens: 5, budget: 400 };
 var suppressToasts = true;
@@ -404,13 +410,19 @@ if (addForm) addForm.addEventListener('submit', function (e) {
     var ac = document.querySelector('.brand-chip.active'), bk = ac ? ac.dataset.brand : 'custom', b = BRANDS[bk] || BRANDS.custom;
     subscriptions.push({ id: nextId++, name: name, brand: bk, cost: cost, cycle: cycle, category: cat, nextDate: date || '2026-03-15', color: ac ? ac.dataset.color : b.color, icon: name.charAt(0).toUpperCase(), notify: true, usage: Math.floor(Math.random() * 60) + 40 });
     showPokeballCapture(name); addXP(25, name + ' captured!');
+    checkBadges();
     e.target.reset(); document.querySelectorAll('.brand-chip').forEach(function (c) { c.classList.remove('active'); }); renderManageList();
 });
 
 function deleteSub(id) {
     var s = subscriptions.find(function (x) { return x.id === id; });
-    subscriptions = subscriptions.filter(function (x) { return x.id !== id; });
-    if (s) showToast('Released!', s.name + ' freed from kingdom', 'info'); renderManageList();
+    if (s) {
+        GS.saved += s.cost;
+        subscriptions = subscriptions.filter(function (x) { return x.id !== id; });
+        showToast('Released!', s.name + ' freed from kingdom', 'info');
+        checkBadges();
+        renderManageList();
+    }
 }
 
 var addQuick = document.getElementById('addSubQuick');
@@ -437,12 +449,38 @@ function renderReminders() {
 }
 
 /* ── Summary ── */
-function renderSummary() { drawBarChart(); drawCatDonuts(); }
+function renderSummary() { 
+    drawBarChart(); 
+    drawCatDonuts(); 
+    var total = subscriptions.reduce(function (s, sub) { return s + sub.cost; }, 0);
+    animateCounter(document.getElementById('summaryTotalSpend'), total, 1200, '$');
+
+    // Potential Savings
+    animateCounter(document.getElementById('summaryPotentialSavings'), GS.saved, 1000, '$');
+
+    // Buildings Paid
+    var paidCount = Math.max(0, subscriptions.length - 2); // Mock logic: 2 are usually "unpaid"
+    var summaryPaidCount = document.getElementById('summaryPaidCount');
+    if (summaryPaidCount) summaryPaidCount.textContent = paidCount + ' / ' + subscriptions.length;
+    var summaryPaidHint = document.getElementById('summaryPaidHint');
+    if (summaryPaidHint) summaryPaidHint.textContent = (subscriptions.length - paidCount) + ' remaining this month';
+
+    // Savings Quest
+    var questGoal = 50;
+    var questPct = Math.min(GS.saved / questGoal * 100, 100);
+    var fill = document.getElementById('savingsFill');
+    if (fill) {
+        fill.style.width = questPct + '%';
+        var pctText = fill.querySelector('.savings-challenge__pct');
+        if (pctText) pctText.textContent = '$' + GS.saved.toFixed(2) + ' / $' + questGoal;
+    }
+}
 function drawBarChart() {
     var cv = document.getElementById('barChart'); if (!cv) return;
     var ctx = cv.getContext('2d'), dpr = window.devicePixelRatio || 1, w = cv.parentElement.clientWidth - 48, h = 260;
     cv.width = w * dpr; cv.height = h * dpr; cv.style.width = w + 'px'; cv.style.height = h + 'px'; ctx.scale(dpr, dpr);
-    var mo = ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'], vals = [198.5, 215.3, 242.8, 255.6, 254.2, 284.97], mx = Math.max.apply(null, vals) * 1.15;
+    var currentTotal = subscriptions.reduce(function (s, sub) { return s + sub.cost; }, 0);
+    var mo = ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'], vals = [198.5, 215.3, 242.8, 255.6, 254.2, currentTotal], mx = Math.max.apply(null, vals) * 1.15;
     var bW = Math.min(40, (w - 80) / mo.length - 12), gap = (w - 60) / mo.length, bY = h - 40, cH = bY - 20, p = 0;
     (function draw() {
         p = Math.min(p + 0.025, 1); ctx.clearRect(0, 0, w, h);
@@ -502,9 +540,11 @@ if (cancelList) {
             setTimeout(function () {
                 item.remove();
                 showToast('Cancelled', name + ' has been cancelled.', 'success');
-                var count = subscriptions.length;
-                subscriptions = subscriptions.filter(function (s) { return s.name !== name; });
-                if (subscriptions.length < count) {
+                var subToDel = subscriptions.find(function (s) { return s.name === name; });
+                if (subToDel) {
+                    GS.saved += subToDel.cost;
+                    subscriptions = subscriptions.filter(function (s) { return s.id !== subToDel.id; });
+                    checkBadges();
                     renderDashboard();
                     renderManageList();
                     if (typeof drawBarChart === 'function') drawBarChart();
